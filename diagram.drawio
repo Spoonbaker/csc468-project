@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0" version="26.0.10">
   <diagram name="Page-1" id="ONNEkl865YsKOU8A_xtl">
-    <mxGraphModel dx="1630" dy="717" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
+    <mxGraphModel dx="1630" dy="1917" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -88,17 +88,20 @@
         <mxCell id="Un7B_MPfDlpBDxi7xrs7-36" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Backend&lt;/h1&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="Un7B_MPfDlpBDxi7xrs7-48" vertex="1">
           <mxGeometry x="10" y="15" width="109" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="mnFB6uuwoRAHt490Lffs-2" value="&lt;div&gt;Chris&lt;/div&gt;&lt;div&gt;Yanxi&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="mnFB6uuwoRAHt490Lffs-2" value="&lt;div&gt;Chris&lt;/div&gt;&lt;div&gt;Yanxi&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="240" y="60" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="mnFB6uuwoRAHt490Lffs-3" value="&lt;div&gt;Ellis&lt;/div&gt;&lt;div&gt;Gus?&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="mnFB6uuwoRAHt490Lffs-3" value="&lt;div&gt;Ellis&lt;/div&gt;&lt;div&gt;Gus?&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="565" y="60" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="mnFB6uuwoRAHt490Lffs-4" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;&lt;font style=&quot;font-size: 24px;&quot;&gt;&lt;b&gt;Todo&lt;/b&gt;&lt;/font&gt;&lt;/h1&gt;&lt;div align=&quot;left&quot;&gt;&lt;ul&gt;&lt;li&gt;Decide on API&lt;/li&gt;&lt;ul&gt;&lt;li&gt;REST+JSON or GraphQL&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Repo =&amp;gt; org?&lt;/li&gt;&lt;li&gt;Frontend&lt;/li&gt;&lt;ul&gt;&lt;li&gt;Structure&lt;/li&gt;&lt;li&gt;Framework&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Backend Mock API&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="mnFB6uuwoRAHt490Lffs-4" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;&lt;font style=&quot;font-size: 24px;&quot;&gt;&lt;b&gt;Todo&lt;/b&gt;&lt;/font&gt;&lt;/h1&gt;&lt;div align=&quot;left&quot;&gt;&lt;ul&gt;&lt;li&gt;Decide on API&lt;/li&gt;&lt;ul&gt;&lt;li&gt;REST+JSON or GraphQL&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Repo =&amp;gt; org?&lt;/li&gt;&lt;li&gt;Frontend&lt;/li&gt;&lt;ul&gt;&lt;li&gt;Structure&lt;/li&gt;&lt;li&gt;Framework&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Backend Mock API&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="90" y="280" width="188" height="190" as="geometry" />
         </mxCell>
-        <mxCell id="mnFB6uuwoRAHt490Lffs-5" value="&lt;h1&gt;APIs&lt;/h1&gt;&lt;div&gt;- Get &amp;amp; set list of feeds for user&lt;/div&gt;&lt;div&gt;- Given a feed, get articles - paginated, frozen in time&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="mnFB6uuwoRAHt490Lffs-5" value="&lt;h1&gt;APIs&lt;/h1&gt;&lt;div&gt;- Get &amp;amp; set list of feeds for user&lt;/div&gt;&lt;div&gt;- Given a feed, get articles - paginated, frozen in time&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="397.5" y="590" width="395" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="9T8Q0Cszgrzwzj3hXtL0-1" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://www.elliance.com/media/61850/the_power_of_rss.gif;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="-50" width="500" height="610" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
