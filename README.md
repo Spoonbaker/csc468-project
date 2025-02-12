@@ -31,5 +31,6 @@ npm run lint # Run lints to check code for bad things
   - nix formatting?
   - formatting?
   - Lightning CSS
+  - sharp?
 - Decide on API boundary
 - Backend Mock API
