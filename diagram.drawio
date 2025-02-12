@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0" version="26.0.11">
   <diagram name="Page-1" id="ONNEkl865YsKOU8A_xtl">
-    <mxGraphModel dx="1842" dy="751" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
+    <mxGraphModel dx="1630" dy="717" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -67,17 +67,17 @@
         <mxCell id="Un7B_MPfDlpBDxi7xrs7-22" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;strokeWidth=2;shape=mxgraph.arrows2.arrow;dy=0.6;dx=17;notch=0;rotation=-180;" parent="Un7B_MPfDlpBDxi7xrs7-48" vertex="1">
           <mxGeometry x="100" y="185" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="Un7B_MPfDlpBDxi7xrs7-26" value="Indirection" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;strokeWidth=2;shape=mxgraph.arrows2.arrow;dy=0.6;dx=40;notch=0;fontStyle=1" parent="Un7B_MPfDlpBDxi7xrs7-48" vertex="1">
-          <mxGeometry x="420" y="60" width="98" height="70" as="geometry" />
+        <mxCell id="Un7B_MPfDlpBDxi7xrs7-26" value="&lt;div&gt;Indirection:&lt;/div&gt;&lt;div&gt;Auth etc.&lt;br&gt;&lt;/div&gt;" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;strokeWidth=2;shape=mxgraph.arrows2.arrow;dy=0.6;dx=40;notch=0;fontStyle=1" parent="Un7B_MPfDlpBDxi7xrs7-48" vertex="1">
+          <mxGeometry x="420" y="40" width="98" height="70" as="geometry" />
         </mxCell>
         <mxCell id="Un7B_MPfDlpBDxi7xrs7-28" value="" style="shape=or;whiteSpace=wrap;html=1;" parent="Un7B_MPfDlpBDxi7xrs7-48" vertex="1">
           <mxGeometry y="170" width="50" height="60" as="geometry" />
         </mxCell>
         <mxCell id="Un7B_MPfDlpBDxi7xrs7-29" value="&lt;div&gt;Externally&lt;/div&gt;&lt;div&gt;Visible&lt;br&gt;&lt;/div&gt;" style="shape=or;whiteSpace=wrap;html=1;fontStyle=1" parent="Un7B_MPfDlpBDxi7xrs7-48" vertex="1">
-          <mxGeometry x="420" y="165" width="68" height="70" as="geometry" />
+          <mxGeometry x="435" y="165" width="68" height="70" as="geometry" />
         </mxCell>
         <mxCell id="Un7B_MPfDlpBDxi7xrs7-30" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Legend&lt;/h1&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="Un7B_MPfDlpBDxi7xrs7-48" vertex="1">
-          <mxGeometry x="420" y="15" width="98" height="40" as="geometry" />
+          <mxGeometry x="432" width="98" height="40" as="geometry" />
         </mxCell>
         <mxCell id="Un7B_MPfDlpBDxi7xrs7-32" value="" style="shape=or;whiteSpace=wrap;html=1;" parent="Un7B_MPfDlpBDxi7xrs7-48" vertex="1">
           <mxGeometry y="60" width="50" height="60" as="geometry" />
@@ -86,19 +86,13 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="Un7B_MPfDlpBDxi7xrs7-36" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Backend&lt;/h1&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="Un7B_MPfDlpBDxi7xrs7-48" vertex="1">
-          <mxGeometry x="10" y="15" width="109" height="40" as="geometry" />
+          <mxGeometry x="10" width="109" height="40" as="geometry" />
         </mxCell>
         <mxCell id="mnFB6uuwoRAHt490Lffs-2" value="&lt;div&gt;Chris&lt;/div&gt;&lt;div&gt;Yanxi&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="240" y="60" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="mnFB6uuwoRAHt490Lffs-3" value="&lt;div&gt;Ellis&lt;/div&gt;&lt;div&gt;Gus?&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="565" y="60" width="60" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="mnFB6uuwoRAHt490Lffs-4" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;&lt;font style=&quot;font-size: 24px;&quot;&gt;&lt;b&gt;Todo&lt;/b&gt;&lt;/font&gt;&lt;/h1&gt;&lt;div align=&quot;left&quot;&gt;&lt;ul&gt;&lt;li&gt;Decide on API boundary&lt;br&gt;&lt;/li&gt;&lt;li&gt;Frontend&lt;/li&gt;&lt;ul&gt;&lt;li&gt;Structure&lt;/li&gt;&lt;li&gt;Framework&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Backend Mock API&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="90" y="280" width="188" height="190" as="geometry" />
-        </mxCell>
-        <mxCell id="mnFB6uuwoRAHt490Lffs-5" value="&lt;h1&gt;Backend APIs&lt;/h1&gt;&lt;div&gt;- Get &amp;amp; set list of feeds for user&lt;/div&gt;&lt;div&gt;- Given a feed, get articles - paginated, frozen in time&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="72.5" y="530" width="395" height="220" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
