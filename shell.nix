@@ -3,6 +3,7 @@
     inherit (pkgs)
       just
       fd
+      nodejs
       ;
   };
   }
