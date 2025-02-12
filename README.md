@@ -15,6 +15,7 @@ docker run -it --rm -v ${PWD}:/repo nixery.dev/shell/just/fd/nodejs
 ```sh
 cd frontend
 npm run dev # This runs a development server with live reloading
+npm run lint # Run lints to check code for bad things
 ```
 
 ## Backend APIs
@@ -26,8 +27,9 @@ npm run dev # This runs a development server with live reloading
 - Flake? - Once we have things to package
 - Frontend
   - nix package
+  - nix lint check
+  - nix formatting?
   - formatting?
-  - lints? eslint w/ ts plugin?
   - Lightning CSS
 - Decide on API boundary
 - Backend Mock API
