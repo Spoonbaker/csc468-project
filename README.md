@@ -3,7 +3,7 @@
 
 ## Development Shell
 
-To get a dev shell with Nix, run `nix-shell`. This is nicer in many ways if you have it set up.
+To get a dev shell with Nix, run `nix develop`. This is nicer in many ways if you have it set up.
 
 Otherwise, with Docker:
 ```sh
