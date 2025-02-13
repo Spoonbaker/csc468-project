@@ -32,15 +32,9 @@ Vite also lets us import most web-related files, and any file with `?raw`. (See 
 
 Generally, you should prefer putting files in `src/` over `public/`, so that Vite will work its magic.
 
-<!-- TODO: finish -->
 In the future, the backend API base URL should be available in scripts as `import.meta.env.VITE_API_BASE`. <!-- TODO: give example usage -->
 <!-- TODO: .env.{development, production} -->
 <!-- TODO: will we just always run the backend? -->
-
-## Backend APIs
-
-- Get & set list of feeds for user
-- Given a feed, get articles - paginated, frozen in time
 
 ## Features
 
@@ -51,18 +45,4 @@ In the future, the backend API base URL should be available in scripts as `impor
 - Extra stuff if we have time
   - OAuth user accounts - Google, GH
   - Silly overcomplicated "enterprise-grade" backend
-
-## TODO
-
-- Flake? - Once we have things to package
-- Frontend
-  - nix package
-    - NGINX container - <https://discourse.nixos.org/t/build-a-docker-image-with-nginx-php-app-using-dockertools-buildimage/15652/3>
-  - nix lint check
-  - nix formatting?
-  - formatting?
-  - Lightning CSS
-  - sharp?
-- Decide on API boundary
-- Backend Mock API
 
