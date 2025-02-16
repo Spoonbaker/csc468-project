@@ -1,22 +1,22 @@
 {
   # TODO: use our own nixpkgs?
   inputs.flakelight.url = "github:nix-community/flakelight";
-  
+
   outputs = { flakelight, ... }: flakelight ./. {
-    systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+    systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
     packages = {
       # TODO: blindly copied
       frontend = { buildNpmPackage, importNpmLock }: buildNpmPackage {
-          name = "frontend";
-          src = ./frontend;
-          packageJSON = ./frontend/package.json;
-          npmDeps = importNpmLock {
-            npmRoot = ./frontend;
-          };
-          npmConfigHook = importNpmLock.npmConfigHook;
-          installPhase = "cp -r dist/ $out";
+        name = "frontend";
+        src = ./frontend;
+        packageJSON = ./frontend/package.json;
+        npmDeps = importNpmLock {
+          npmRoot = ./frontend;
         };
+        npmConfigHook = importNpmLock.npmConfigHook;
+        installPhase = "cp -r dist/ $out";
+      };
 
       frontend-nginx-conf = { substituteAll, frontend, nginx }: substituteAll {
         src = ./nginx.conf;
@@ -39,13 +39,13 @@
         '';
 
         config = {
-          Entrypoint = ["${lib.getExe nginx}" "-c" "${frontend-nginx-conf}"];
+          Entrypoint = [ "${lib.getExe nginx}" "-c" "${frontend-nginx-conf}" ];
           ExposedPorts = {
-            "80/tcp" = {};
-            "443/tcp" = {};
+            "80/tcp" = { };
+            "443/tcp" = { };
           };
           Volumes = {
-            "/cert" = {}; # Expects cert.crt & key.pem
+            "/cert" = { }; # Expects cert.crt & key.pem
           };
         };
       };
@@ -59,7 +59,7 @@
         fd
         nodejs
         typescript-language-server
-      ;
+        ;
     };
 
     # TODO: formatting
