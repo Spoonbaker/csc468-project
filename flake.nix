@@ -19,7 +19,7 @@
       };
 
       frontend-nginx-conf = { substituteAll, frontend, nginx }: substituteAll {
-        src = ./nginx.conf;
+        src = ./containers/nginx.conf;
         webRoot = "${frontend}";
         nginxRoot = "${nginx}";
       };
