@@ -5,7 +5,6 @@
   "Ellis Weaver-Kreider",
   "Yanxi Wei",
 )
-#let course = [CSC 468 #sym.dash Introduction to Cloud Computing]
 #let rssFig = true
 
 #set document(
@@ -55,7 +54,7 @@
       ..(authors.map(smallcaps))
     )
 
-    #course \
+    CSC 468 -- Introduction to Cloud Computing \
     Dr. Linh B. Ngo --- Spring 2025 \ // Alternatively, we could do #strong(sym.dot.c)
     West Chester University of Pennsylvania \
 
@@ -84,7 +83,7 @@
       width: 1fr, height: 0.6em
     ) // TODO: do we want the line?
 
-    emph(course)
+    emph[CSC 468]
   },
   footer: align(right, context counter(page).display("1")),
   numbering: "1", // Adds metadata to the PDF
