@@ -168,13 +168,13 @@ to proxy requests to the API server. This means that SSL configuration
 is centralized, and is all around simpler than hosting the API completely
 separately. This API will allow the frontend to communicate with the database.
 
-For the database, we will use Postgres. Postgres has the ability to store text
-data such as article content in the `text` type, and, should we need it, can
-also store JSON efficiently and in a queryable manner in the `jsonb` type.
-We believe that for this project, any document-style data is best stored in
-a battle-tested DBMS like Postgres, as opposed to a dedicated document-only
-database like Mongo. If we have the time to have multiple global points of
-presence, Postgres supports replication, which should make things easier.
+For the database, we will use Postgres, at least initially. Postgres has the
+ability to store text data such as article content in the `text` type, and,
+should we need it, can also store JSON efficiently and in a queryable manner
+in the `jsonb` type. We believe that for this project, any document-style data
+is best stored in a battle-tested DBMS like Postgres, as opposed to a dedicated
+document-only database like Mongo. If we have the time to have multiple global
+points of presence, we may consider a different DBMS.
 
 Also note that in @design below, the *User DB* and the *Article & Feed DB* will
 most likely be in the same Postgres instance for simplicity.
