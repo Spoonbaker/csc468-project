@@ -59,6 +59,9 @@
         fd
         nodejs
         typescript-language-server
+
+        # Report only
+        qpdf
         ;
     };
 
