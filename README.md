@@ -4,15 +4,7 @@
 
 ## Development Shell
 
-To get a dev shell with Nix, run `nix develop`. This is nicer in many ways if you have it set up.
-
-Otherwise, with Docker:
-
-```sh
-docker run -it --rm -v .:/repo -p 8081:8081 -w /repo nixery.dev/shell/just/fd/nodejs
-```
-
-Note that the docker command should be run from the repo root (the folder containing this file).
+To get a dev shell with Nix, run `nix develop`.
 
 ## Frontend
 
@@ -60,7 +52,7 @@ In the future, the backend API base URL should be available in scripts as `impor
 - The item starts off unassigned, meaning there is not one specific person who is going to do it.
 - When somone is looking to pick up additional work, they assign something for their team to themselves
 - We all move assigned tasks from Todo -> In Progress -> Done
-- 5 days after an item is closed, it is archived to clear up space.
+- 3 days after an item is closed, it is archived to clear up space.
 
 ### Things to keep in mind:
 
