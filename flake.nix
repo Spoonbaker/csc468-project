@@ -50,6 +50,27 @@
         };
       };
 
+      raw-report = { runCommand, typst }: runCommand "report-raw.pdf"
+        { nativeBuildInputs = [ typst ]; }
+        "typst compile ${./report}/main.typ $out";
+
+      final-report = { runCommand, qpdf, raw-report }: runCommand "final-report.pdf"
+        { nativeBuildInputs = [ qpdf ]; }
+        "qpdf --empty --deterministic-id --pages ${raw-report} ${./report/resumes}/*.pdf -- $out";
+
+    };
+
+    checks = {
+      # Flakelight implicit checks:
+      # - All packages
+      # - Formatting of all files
+      # - NixOS systems with same `system`
+
+      report-matches = { runCommand, final-report, ... }: runCommand "report-matches" { } ''
+        diff -q ${final-report} ${./report.pdf} |\
+          sed 's/Files .* and .* differ/Report not updated! Run `just report`./g'
+        touch $out
+      '';
     };
 
     # TODO: do we want multiple devShells?
