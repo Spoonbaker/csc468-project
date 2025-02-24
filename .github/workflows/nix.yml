@@ -43,3 +43,9 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v16
       - name: Run Check ${{matrix.check}}
         run: nix build .#checks.x86_64-linux.${{matrix.check}}
+  all-checks-pass:
+    name: All Checks Pass
+    needs: run-checks
+    runs-on: ubuntu-latest
+    steps:
+      - run: true
