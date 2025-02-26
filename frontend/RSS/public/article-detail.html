@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Detail - Aggre-Gator RSS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5A1F58',
+                        secondary: '#E6B800'
+                    },
+                    borderRadius: {
+                        'none': '0px',
+                        'sm': '4px',
+                        DEFAULT: '8px',
+                        'md': '12px',
+                        'lg': '16px',
+                        'xl': '20px',
+                        '2xl': '24px',
+                        '3xl': '32px',
+                        'full': '9999px',
+                        'button': '8px'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm z-50 flex items-center px-6">
+        <div class="flex items-center gap-6 w-full max-w-7xl mx-auto">
+            <a href="Aggre-Gator.html" class="font-['Pacifico'] text-2xl text-secondary">Aggre-Gator RSS</a>
+            <div class="flex-1"></div>
+            <button onclick="window.location.href='Aggre-Gator.html'"
+                class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                <i class="ri-arrow-left-line"></i>
+                <span>Back to Home</span>
+            </button>
+            <button onclick="window.location.href='feeds.html'"
+                class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg ml-2">
+                <i class="ri-rss-line"></i>
+                <span>Manage Feeds</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <article class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <!-- Article Header -->
+                <div class="p-8">
+                    <div class="flex items-center gap-4 mb-6">
+                        <img id="sourceFavicon" src="" alt="" class="w-8 h-8 rounded-full bg-gray-100">
+                        <div>
+                            <h3 id="sourceTitle" class="font-medium text-gray-900"></h3>
+                            <time id="articleDate" class="text-sm text-gray-500"></time>
+                        </div>
+                    </div>
+                    <h1 id="articleTitle" class="text-3xl font-bold text-gray-900 mb-4"></h1>
+                    <div class="flex items-center gap-4">
+                        <button id="bookmarkBtn"
+                            class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 !rounded-button">
+                            <i class="ri-bookmark-line"></i>
+                            <span>Bookmark</span>
+                        </button>
+                        <button id="shareBtn"
+                            class="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 !rounded-button">
+                            <i class="ri-share-line"></i>
+                            <span>Share</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Article Content -->
+                <div class="px-8 pb-8">
+                    <div id="articleContent" class="prose max-w-none">
+                        <!-- Content will be loaded here -->
+                    </div>
+                </div>
+            </article>
+
+            <!-- Related Articles -->
+            <section class="mt-8">
+                <h2 class="text-xl font-semibold mb-4">Related Articles</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="relatedArticles">
+                    <!-- Related articles will be loaded here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg transform transition-transform duration-300 translate-y-full">
+    </div>
+
+    <script>
+        // Mock article data
+        const article = {
+            id: 1,
+            title: "Breakthrough in AI Medical Diagnostics",
+            content: `<p>Recent studies have shown remarkable progress in AI-powered medical diagnostics, with new systems achieving unprecedented accuracy rates in early disease detection.</p>
+                <h2>Key Findings</h2>
+                <p>The latest AI diagnostic systems have demonstrated:</p>
+                <ul>
+                  <li>95% accuracy in early cancer detection</li>
+                  <li>Reduced false positive rates by 60%</li>
+                  <li>Processing time reduced to mere seconds</li>
+                </ul>
+                <p>This breakthrough represents a significant step forward in medical technology...</p>`,
+            date: "2025-02-26",
+            source: {
+                title: "Medical Technology Today",
+                favicon: "https://example.com/favicon.ico"
+            },
+            isBookmarked: false
+        };
+
+        // Add mockArticles data
+        const mockArticles = [
+            {
+                id: 1,
+                title: "Breakthrough in AI Medical Diagnostics",
+                summary: "Recent studies show AI technology achieving 95% accuracy in early cancer detection, revolutionizing medical diagnosis procedures...",
+                date: "2025-02-26",
+                isUnread: true,
+                isBookmarked: false
+            },
+            // ... 其他文章数据
+        ];
+
+        // Get article ID from URL
+        function getArticleIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return parseInt(urlParams.get('id')) || 1; // Default to ID 1
+        }
+
+        // Load article content
+        function loadArticle() {
+            const articleId = getArticleIdFromUrl();
+            const articleData = mockArticles.find(a => a.id === articleId) || article;
+
+            document.title = `${articleData.title} - Aggre-Gator RSS`;
+            document.getElementById('articleTitle').textContent = articleData.title;
+            document.getElementById('sourceTitle').textContent = articleData.source?.title || "Medical Technology Today";
+            document.getElementById('sourceFavicon').src = articleData.source?.favicon || "https://example.com/favicon.ico";
+            document.getElementById('articleDate').textContent = articleData.date;
+            document.getElementById('articleContent').innerHTML = articleData.content || `<p>${articleData.summary}</p>`;
+
+            article = articleData; // Update current article object
+            updateBookmarkButton();
+        }
+
+        // Toggle bookmark
+        function toggleBookmark() {
+            article.isBookmarked = !article.isBookmarked;
+            updateBookmarkButton();
+            showToast(article.isBookmarked ? 'Article bookmarked' : 'Bookmark removed');
+        }
+
+        // Update bookmark button
+        function updateBookmarkButton() {
+            const btn = document.getElementById('bookmarkBtn');
+            const icon = btn.querySelector('i');
+            icon.className = article.isBookmarked ? 'ri-bookmark-fill' : 'ri-bookmark-line';
+        }
+
+        // Share article
+        function shareArticle() {
+            const shareUrl = window.location.href;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showToast('Link copied!');
+            }).catch(() => {
+                showToast('Failed to copy link');
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('translate-y-full');
+            setTimeout(() => {
+                toast.classList.add('translate-y-full');
+            }, 2000);
+        }
+
+        // Event listeners
+        document.getElementById('bookmarkBtn').addEventListener('click', toggleBookmark);
+        document.getElementById('shareBtn').addEventListener('click', shareArticle);
+
+        // Add related articles rendering
+        function renderRelatedArticles() {
+            const relatedArticles = [
+                {
+                    id: 2,
+                    title: "AI in Healthcare: A New Era",
+                    date: "2025-02-25"
+                },
+                {
+                    id: 3,
+                    title: "Machine Learning Revolutionizes Disease Detection",
+                    date: "2025-02-24"
+                }
+                // Add more related articles as needed
+            ];
+
+            const relatedArticlesList = document.getElementById('relatedArticles');
+            relatedArticlesList.innerHTML = relatedArticles.map(article => `
+                <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer" 
+                     onclick="readArticle(${article.id})">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">${article.title}</h4>
+                        <time class="text-xs text-gray-500">${article.date}</time>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update initialize function
+        function initialize() {
+            loadArticle();
+            renderRelatedArticles();
+        }
+
+        // Call initialize instead of just loadArticle
+        initialize();
+
+        // Read article
+        function readArticle(id) {
+            window.location.href = `article-detail.html?id=${id}`;
+        }
+    </script>
+</body>
+
+</html>

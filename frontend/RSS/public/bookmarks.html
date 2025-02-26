@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmarks - Aggre-Gator RSS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5A1F58',
+                        secondary: '#E6B800'
+                    },
+                    borderRadius: {
+                        'none': '0px',
+                        'sm': '4px',
+                        DEFAULT: '8px',
+                        'md': '12px',
+                        'lg': '16px',
+                        'xl': '20px',
+                        '2xl': '24px',
+                        '3xl': '32px',
+                        'full': '9999px',
+                        'button': '8px'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :where([class^="ri-"])::before {
+            content: "\f3c2";
+        }
+
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .article-grid.searching {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm z-50 flex items-center px-6">
+        <div class="flex items-center gap-6 w-full max-w-7xl mx-auto">
+            <a href="Aggre-Gator.html" class="font-['Pacifico'] text-2xl text-secondary">Aggre-Gator RSS</a>
+            <div class="relative flex-1 max-w-xl">
+                <input type="text" placeholder="Search bookmarks..."
+                    class="w-full h-10 pl-10 pr-4 rounded-full bg-gray-100 border-none text-sm" id="searchInput">
+                <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="showLoginModal()"
+                    class="px-4 py-2 bg-primary text-white !rounded-button hover:bg-primary/90">
+                    Login
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex pt-16 min-h-screen">
+        <!-- Left Sidebar -->
+        <aside class="fixed left-0 top-16 bottom-0 w-60 bg-white border-r border-gray-200 p-4">
+            <nav class="space-y-2">
+                <a href="Aggre-Gator.html"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                    <i class="ri-home-line"></i>
+                    <span>Home</span>
+                </a>
+                <a href="feeds.html"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100">
+                    <i class="ri-rss-line"></i>
+                    <span>Feeds</span>
+                </a>
+                <a href="bookmarks.html"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-white hover:bg-secondary">
+                    <i class="ri-bookmark-line"></i>
+                    <span>Bookmarks</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 ml-60 p-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900">Bookmarked Articles</h1>
+                    <div class="flex items-center gap-3">
+                        <select id="sortOrder"
+                            class="h-10 px-3 rounded border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="title">By Title</option>
+                            <option value="source">By Source</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Bookmarked Articles -->
+                <div class="article-grid" id="bookmarksList">
+                    <!-- Articles will be loaded here -->
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex justify-center items-center gap-2 mt-8">
+                    <button
+                        class="px-4 py-2 border border-gray-300 !rounded-button hover:bg-gray-50 disabled:opacity-50"
+                        id="prevPage" disabled onclick="prevPage()">Previous</button>
+                    <span class="text-gray-600" id="pageInfo">Page 1 of 1</span>
+                    <button
+                        class="px-4 py-2 border border-gray-300 !rounded-button hover:bg-gray-50 disabled:opacity-50"
+                        id="nextPage" disabled onclick="nextPage()">Next</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Delete Bookmark Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-96">
+            <h3 class="text-lg font-semibold mb-4">Remove Bookmark</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to remove this bookmark? You can always bookmark it
+                again later.</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeDeleteModal()"
+                    class="px-4 py-2 text-gray-600 hover:bg-gray-100 !rounded-button">Cancel</button>
+                <button onclick="confirmDelete()"
+                    class="px-4 py-2 bg-primary text-white hover:bg-secondary !rounded-button">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-4 rounded-lg flex items-center gap-3">
+            <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <span>Loading...</span>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg transform transition-transform duration-300 translate-y-full">
+    </div>
+
+    <script>
+        // Mock bookmarked articles
+        const mockBookmarks = [
+            {
+                id: 1,
+                title: "Breakthrough in AI Medical Diagnostics",
+                summary: "Recent studies show AI technology achieving 95% accuracy in early cancer detection, revolutionizing medical diagnosis procedures...",
+                date: "2025-02-26",
+                source: "Medical Technology Today",
+                sourceUrl: "https://medicaltechnology.com",
+                bookmarkedAt: "2025-02-26T14:30:00Z"
+            },
+            {
+                id: 4,
+                title: "Quantum Computing Reaches New Milestone",
+                summary: "Scientists have achieved quantum supremacy with a 1000-qubit processor, solving problems impossible for classical computers...",
+                date: "2025-02-23",
+                source: "Quantum Science Journal",
+                sourceUrl: "https://quantumscience.org",
+                bookmarkedAt: "2025-02-24T09:15:00Z"
+            },
+            {
+                id: 5,
+                title: "Sustainable Energy Breakthrough",
+                summary: "New solar panel technology achieves 40% efficiency, potentially revolutionizing renewable energy adoption worldwide...",
+                date: "2025-02-22",
+                source: "Green Energy Report",
+                sourceUrl: "https://greenenergy.com",
+                bookmarkedAt: "2025-02-23T16:45:00Z"
+            },
+            {
+                id: 8,
+                title: "Advances in Renewable Energy Storage",
+                summary: "Breakthrough in battery technology promises to solve renewable energy storage challenges and accelerate clean energy adoption...",
+                date: "2025-02-19",
+                source: "Clean Tech Review",
+                sourceUrl: "https://cleantechreview.com",
+                bookmarkedAt: "2025-02-20T11:20:00Z"
+            },
+            {
+                id: 12,
+                title: "Neural Interfaces Enable New Human-Computer Interaction",
+                summary: "Non-invasive neural interfaces allow direct brain-to-computer communication, opening new possibilities for accessibility...",
+                date: "2025-02-15",
+                source: "Neural Tech Today",
+                sourceUrl: "https://neuraltech.com",
+                bookmarkedAt: "2025-02-18T08:30:00Z"
+            },
+            {
+                id: 15,
+                title: "Space Tourism Becomes Reality",
+                summary: "Commercial space flights now available to civilians, marking a new era in space exploration and tourism...",
+                date: "2025-02-10",
+                source: "Space Frontier",
+                sourceUrl: "https://spacefrontier.com",
+                bookmarkedAt: "2025-02-12T19:45:00Z"
+            }
+        ];
+
+        // Pagination variables
+        let currentPage = 1;
+        const itemsPerPage = 4;
+        let filteredBookmarks = [...mockBookmarks];
+        let totalPages = Math.ceil(filteredBookmarks.length / itemsPerPage);
+        let currentDeleteId = null;
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Format relative time
+        function formatRelativeTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+
+            if (diffDay > 30) {
+                return formatDate(dateString);
+            } else if (diffDay > 0) {
+                return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+            } else if (diffHour > 0) {
+                return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+            } else if (diffMin > 0) {
+                return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+            } else {
+                return 'Just now';
+            }
+        }
+
+        // Show loading indicator
+        function showLoading() {
+            document.getElementById('loadingIndicator').style.display = 'flex';
+        }
+
+        // Hide loading indicator
+        function hideLoading() {
+            document.getElementById('loadingIndicator').style.display = 'none';
+        }
+
+        // Article template
+        function getBookmarkTemplate(article) {
+            return `
+                <article class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h2 class="text-lg font-medium text-gray-900">
+                                <a href="article-detail.html?id=${article.id}" class="hover:text-primary">${article.title}</a>
+                            </h2>
+                            <button onclick="showDeleteModal(${article.id})" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </div>
+                        <p class="text-gray-600 mb-4 text-sm">${article.summary}</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-700">${article.source}</span>
+                            </div>
+                            <div class="flex flex-col items-end">
+                                <time class="text-sm text-gray-500">${article.date}</time>
+                                <span class="text-xs text-gray-400">Bookmarked ${formatRelativeTime(article.bookmarkedAt)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 bg-gray-50 border-t">
+                        <a href="article-detail.html?id=${article.id}" 
+                           class="block w-full py-2 bg-primary text-white text-center !rounded-button hover:bg-secondary">
+                            Read Article
+                        </a>
+                    </div>
+                </article>
+            `;
+        }
+
+        // Render bookmarks
+        async function renderBookmarks() {
+            showLoading();
+
+            try {
+                // Simulate loading delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const bookmarksList = document.getElementById('bookmarksList');
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const currentBookmarks = filteredBookmarks.slice(startIndex, endIndex);
+
+                if (currentBookmarks.length === 0) {
+                    bookmarksList.innerHTML = `
+                        <div class="col-span-full text-center py-8">
+                            <i class="ri-bookmark-line text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500">No bookmarked articles found</p>
+                        </div>
+                    `;
+                } else {
+                    bookmarksList.innerHTML = currentBookmarks.map(getBookmarkTemplate).join('');
+                }
+
+                // Update pagination
+                updatePagination();
+            } catch (error) {
+                console.error('Render bookmarks failed:', error);
+                const bookmarksList = document.getElementById('bookmarksList');
+                bookmarksList.innerHTML = `
+                    <div class="col-span-full text-center py-8 text-red-500">
+                        <i class="ri-error-warning-line text-4xl mb-2"></i>
+                        <p>Failed to load bookmarks. Please try again later.</p>
+                    </div>
+                `;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Update pagination
+        function updatePagination() {
+            totalPages = Math.ceil(filteredBookmarks.length / itemsPerPage);
+            const prevButton = document.getElementById('prevPage');
+            const nextButton = document.getElementById('nextPage');
+            const pageInfo = document.getElementById('pageInfo');
+
+            prevButton.disabled = currentPage === 1;
+            nextButton.disabled = currentPage === totalPages || totalPages === 0;
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+        }
+
+        // Previous page
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderBookmarks();
+            }
+        }
+
+        // Next page
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderBookmarks();
+            }
+        }
+
+        // Search bookmarks
+        function handleSearch(searchTerm) {
+            if (searchTerm.trim() === '') {
+                filteredBookmarks = [...mockBookmarks];
+            } else {
+                filteredBookmarks = mockBookmarks.filter(bookmark =>
+                    bookmark.title.toLowerCase().includes(searchTerm) ||
+                    bookmark.source.toLowerCase().includes(searchTerm) ||
+                    bookmark.summary.toLowerCase().includes(searchTerm)
+                );
+            }
+            currentPage = 1;
+            renderBookmarks();
+        }
+
+        // Show delete modal
+        function showDeleteModal(id) {
+            currentDeleteId = id;
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            currentDeleteId = null;
+        }
+
+        // Confirm delete
+        function confirmDelete() {
+            if (currentDeleteId !== null) {
+                const index = mockBookmarks.findIndex(bookmark => bookmark.id === currentDeleteId);
+                if (index !== -1) {
+                    mockBookmarks.splice(index, 1);
+                    filteredBookmarks = [...mockBookmarks];
+                    showToast('Bookmark removed');
+                    renderBookmarks();
+                }
+            }
+            closeDeleteModal();
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('translate-y-full');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-full');
+            }, 2000);
+        }
+
+        // Sort bookmarks
+        function sortBookmarks(order) {
+            switch (order) {
+                case 'newest':
+                    filteredBookmarks.sort((a, b) => new Date(b.bookmarkedAt) - new Date(a.bookmarkedAt));
+                    break;
+                case 'oldest':
+                    filteredBookmarks.sort((a, b) => new Date(a.bookmarkedAt) - new Date(b.bookmarkedAt));
+                    break;
+                case 'title':
+                    filteredBookmarks.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'source':
+                    filteredBookmarks.sort((a, b) => a.source.localeCompare(b.source));
+                    break;
+                default:
+                    filteredBookmarks.sort((a, b) => new Date(b.bookmarkedAt) - new Date(a.bookmarkedAt));
+            }
+            currentPage = 1;
+            renderBookmarks();
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.trim() === '') {
+                document.getElementById('bookmarksList').classList.remove('searching');
+            } else {
+                document.getElementById('bookmarksList').classList.add('searching');
+            }
+            handleSearch(searchTerm);
+        });
+
+        document.getElementById('sortOrder').addEventListener('change', (e) => {
+            sortBookmarks(e.target.value);
+        });
+
+        // Initialize
+        renderBookmarks();
+    </script>
+</body>
+
+</html>
