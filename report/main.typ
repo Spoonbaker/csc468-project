@@ -158,11 +158,9 @@ and minifies all assets for us. We also use Lightning CSS, a CSS processor and
 
 Instead of plain JavaScript, we opted to use Typescript for better error
 checking and IDE integration. We also have ESLint set up to catch errors and
-mistakes that the Typescript compiler might miss.
-
-We also chose to use React to enable component-based development, along with
-React Router for multi-page navigation. For styling, we are going to use
-Tailwind with WCU theme colors.
+mistakes that the Typescript compiler might miss.  Given that we don't need
+to manage any client-side UI state, we didn't use a Javascript framework. For
+styling, we are using Tailwind CSS with WCU theme colors.
 
 == Backend
 The backend will consist of three parts: the database, the API, and the feed
