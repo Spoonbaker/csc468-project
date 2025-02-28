@@ -86,6 +86,7 @@
         fd
         nodejs
         typescript-language-server
+        vscode-langservers-extracted
         ;
     };
 
