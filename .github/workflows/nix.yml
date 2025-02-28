@@ -1,4 +1,5 @@
 # Courtesy of Ben Crocker (@bwc9876)
+# Modified
 
 name: Flake Check CI
 on:
@@ -15,7 +16,7 @@ on:
     #   - "*.md"
 jobs:
   check-eval:
-    name: Eval / Get Checks
+    name: Get Checks
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.checks-matrix.outputs.matrix }}
@@ -27,8 +28,6 @@ jobs:
           ref: ${{ github.head_ref }}
       - name: Setup Nix
         uses: DeterminateSystems/nix-installer-action@v16
-      - name: Show Flake
-        run: nix flake show
       - name: Output Checks Matrix
         id: checks-matrix
         run: |
@@ -53,6 +52,4 @@ jobs:
   all-checks-pass:
     name: All Checks Pass
     needs: run-checks
-    runs-on: ubuntu-latest
-    steps:
-      - run: true
+    steps: []
