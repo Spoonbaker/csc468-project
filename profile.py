@@ -1,3 +1,12 @@
+"""
+For Dr. Ngo's CSC468 at West Chester University. The goal is to create a
+cloud-based RSS & Atom feed reader.
+
+Instructions:
+When it's finished, simply in instantiating this profile should bring everything
+up. There may be more work to get TLS working.
+"""
+
 import geni.portal as portal
 import geni.rspec.pg as rspec
 
