@@ -14,7 +14,8 @@ To get started:
 cd frontend
 npm i # This installs all required packages locally for development
 npm run dev # This runs a development server with live reloading
-npm run lint # Run lints to check code for bad things
+npm run check # Run lints to check code for bad things
+npm run fmt # Format code with consistent style
 ```
 
 > [!NOTE]

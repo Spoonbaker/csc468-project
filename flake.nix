@@ -2,7 +2,7 @@
   # TODO: use our own nixpkgs?
   inputs.flakelight.url = "github:nix-community/flakelight";
 
-  outputs = { flakelight, ... }: flakelight ./. {
+  outputs = { flakelight, ... }: flakelight ./. ({ config, ... }: {
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
     packages = {
@@ -71,6 +71,12 @@
           sed 's/Files .* and .* differ/Report not updated! Run `just report`./g'
         touch $out
       '';
+
+      frontend-checks = { frontend, ... }: frontend.overrideAttrs {
+        name = "frontend-checks";
+        installPhase = "touch $out;";
+        npmBuildScript = "check";
+      };
     };
 
     # TODO: do we want multiple devShells?
@@ -80,14 +86,20 @@
         fd
         nodejs
         typescript-language-server
+        vscode-langservers-extracted
         ;
     };
 
-    # TODO: formatting
-    # JS
-    # TS
-    # CSS
-    # nix - nixfmt?
-  };
+    formatters = pkgs:
+      let
+        prettier = (config.formatters pkgs)."*.md";
+      in
+      {
+        "*.js" = prettier;
+        "*.ts" = prettier;
+        "*.css" = prettier;
+        "*.html" = prettier;
+      };
+  });
 }
 
