@@ -27,10 +27,21 @@ Vite also lets us import most web-related files, and any file with `?raw`. (See 
 
 Generally, you should prefer putting files in `src/` over `public/`, so that Vite will work its magic.
 
-In the future, the backend API base URL should be available in scripts as `import.meta.env.VITE_API_BASE`. <!-- TODO: give example usage -->
+In the future, the backend API base URL should be available in scripts as `import.meta.env.VITE_API_BASE`. An example usage:
 
-<!-- TODO: .env.{development, production} -->
-<!-- TODO: will we just always run the backend? -->
+```js
+const API_BASE = import.meta.env.VITE_API_BASE;
+
+// Do a GET request
+const response = await fetch(`${API_BASE}/endpoint`);
+
+// To change the type of request, do:
+const response = await fetch(`${API_BASE}/endpoint`, {
+  /* fields */
+});
+// The fields you can use are documented in:
+// https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
+```
 
 ## Development
 
