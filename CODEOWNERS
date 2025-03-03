@@ -2,7 +2,9 @@
 * @Spoonbaker
 
 /report/    @Spoonbaker @chriskross192 @YanxiWei2023 @gjohannesen
-/report.pdf @Spoonbaker @chriskross192 @YanxiWei2023 @gjohannesen
+
+# If only the final pdf changes, the content is the same.
+# /report.pdf @Spoonbaker @chriskross192 @YanxiWei2023 @gjohannesen
 
 /frontend/  @chriskross192 @YanxiWei2023
 
