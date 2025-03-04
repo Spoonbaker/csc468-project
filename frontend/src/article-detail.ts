@@ -3,7 +3,7 @@
 // combine related functionality into modules, and fix the Typescript errors.
 
 // Mock article data
-const article = {
+let article = {
   id: 1,
   title: "Breakthrough in AI Medical Diagnostics",
   content: `<p>Recent studies have shown remarkable progress in AI-powered medical diagnostics, with new systems achieving unprecedented accuracy rates in early disease detection.</p>
@@ -34,6 +34,20 @@ const mockArticles = [
     isUnread: true,
     isBookmarked: false,
   },
+  {
+    id: 2,
+    title: "AI in Healthcare: A New Era",
+    date: "2025-02-25",
+    isUnread: true,
+    isBookmarked: false,
+  },
+  {
+    id: 3,
+    title: "Machine Learning Revolutionizes Disease Detection",
+    date: "2025-02-24",
+    isUnread: true,
+    isBookmarked: false,
+  },
   // ... 其他文章数据
 ];
 
@@ -55,8 +69,31 @@ function loadArticle() {
   document.getElementById("sourceFavicon").src =
     articleData.source?.favicon || "https://example.com/favicon.ico";
   document.getElementById("articleDate").textContent = articleData.date;
-  document.getElementById("articleContent").innerHTML =
-    articleData.content || `<p>${articleData.summary}</p>`;
+  
+  //document.getElementById("articleContent").innerHTML =
+   // articleData.content || `<p>${articleData.summary}</p>`;
+
+  // attempting to remove uses of .innerHTML
+  const articleContentElem = document.getElementById("articleContent");
+  if (articleContentElem) {
+    while(articleContentElem.firstChild) {
+      articleContentElem.removeChild(articleContentElem.firstChild);
+    }
+    
+    // Parse content
+    const parser = new DOMParser();
+    const htmlContent = articleData.content || `<p>${articleData.summary}</p>`;
+    const parsed = parser.parseFromString(htmlContent, 'text/html');
+    
+    // Add parsed content to article elem
+    const fragment = document.createDocumentFragment();
+    Array.from(parsed.body.children).forEach(node => {
+      fragment.appendChild(document.importNode(node, true));
+    });
+
+    articleContentElem.appendChild(fragment);
+  }
+
 
   article = articleData; // Update current article object
   updateBookmarkButton();
@@ -120,20 +157,43 @@ function renderRelatedArticles() {
   ];
 
   const relatedArticlesList = document.getElementById("relatedArticles");
-  relatedArticlesList.innerHTML = relatedArticles
-    .map(
-      (article) => `
-          <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer" 
-               onclick="readArticle(${article.id})">
-              <div>
-                  <h4 class="text-sm font-medium text-gray-900">${article.title}</h4>
-                  <time class="text-xs text-gray-500">${article.date}</time>
-              </div>
-          </div>
-      `,
-    )
-    .join("");
-}
+  if (relatedArticlesList) {
+    while (relatedArticlesList.firstChild) {
+      relatedArticlesList.removeChild(relatedArticlesList.firstChild);
+    }
+
+    // Create and append each related article
+    relatedArticles.forEach(article => {
+      // Create main container
+      const articleDiv = document.createElement('div');
+      articleDiv.className = 'flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer';
+    
+      // Event listener
+      articleDiv.addEventListener('click', () => {
+      readArticle(article.id);
+      });
+    
+      const contentDiv = document.createElement('div');
+    
+      // Title elem
+      const titleElem = document.createElement('h4');
+      titleElem.className = 'text-sm font-medium text-gray-900';
+      titleElem.textContent = article.title;
+    
+      // Date elem
+      const dateElem = document.createElement('time');
+      dateElem.className = 'text-xs text-gray-500';
+      dateElem.textContent = article.date;
+    
+      // Build DOM structure
+      contentDiv.appendChild(titleElem);
+      contentDiv.appendChild(dateElem);
+      articleDiv.appendChild(contentDiv);
+    
+      relatedArticlesList.appendChild(articleDiv);
+    });
+  }
+} 
 
 // Update initialize function
 function initialize() {
