@@ -100,46 +100,109 @@ async function renderFeeds() {
     const endIndex = startIndex + itemsPerPage;
     const currentFeeds = mockFeeds.slice(startIndex, endIndex);
 
+    while (feedList.firstChild) {
+      feedList.removeChild(feedList.firstChild);
+    }
+
     if (currentFeeds.length === 0) {
-      feedList.innerHTML = `
-      <div class="p-6 text-center">
-        <i class="ri-rss-line text-4xl text-gray-400 mb-2"></i>
-        <p class="text-gray-500">No feeds available</p>
-      </div>
-    `;
+      const container = document.createElement('div');
+      container.className = 'p-6 text-center';
+
+      const icon = document.createElement('i');
+      icon.className = 'ri-rss-line text-4xl text-gray-400 mb-2';
+
+      const text = document.createElement('p');
+      text.className = 'text-gray-500';
+      text.textContent = 'No feeds available';
+
+      container.appendChild(icon);
+      container.appendChild(text);
+      feedList.appendChild(container);
     } else {
-      feedList.innerHTML = currentFeeds
-        .map(
-          (feed) => `
-      <div class="p-4 hover:bg-gray-50">
-        <div class="p-4 flex justify-between items-start">
-          <div class="flex items-center gap-3">
-            <img src="${feed.favicon}" alt="" class="w-8 h-8 rounded-full bg-gray-100">
-            <div>
-              <h3 class="font-medium text-gray-900">${feed.name}</h3>
-              <p class="text-sm text-gray-500">${feed.url}</p>
-              <div class="flex items-center gap-4 mt-2">
-                <span class="text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600">${feed.category}</span>
-                <span class="text-xs text-gray-500">${feed.articleCount} articles</span>
-                <span class="text-xs text-gray-500">${feed.unreadCount} unread</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex items-center gap-4">
-            <button onclick="showFeedArticles(${feed.id})" 
-              class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-primary hover:bg-gray-100 rounded">
-              <i class="ri-article-line text-xl"></i>
-            </button>
-            <button onclick="showDeleteFeedModal(${feed.id})" 
-              class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded">
-              <i class="ri-delete-bin-line text-xl"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    `,
-        )
-        .join("");
+      currentFeeds.forEach(feed => {
+        const feedContainer = document.createElement('div');
+        feedContainer.className = 'p-4 hover:bg-gray-50';
+
+        const contentContainer = document.createElement('div');
+        contentContainer.className = 'p-4 flex justify-between items-start';
+
+        const leftContainer = document.createElement('div');
+        leftContainer.className = 'flex items-center gap-3';
+
+        const icon = document.createElement('img');
+        icon.src = feed.favicon;
+        icon.alt = '';
+        icon.className = 'w-8 h-8 rounded-full bg-gray-100';
+
+        const detailsContainer = document.createElement('div');
+
+        const nameHeading = document.createElement('h3');
+        nameHeading.className = 'font-medium text-gray-900';
+        nameHeading.textContent = feed.name;
+
+        const urlPara = document.createElement('p');
+        urlPara.className = 'text-sm text-gray-500';
+        urlPara.textContent = feed.url;
+
+        const statsContainer = document.createElement('div');
+        statsContainer.className = 'flex items-center gap-4 mt-2';
+
+        const categorySpan = document.createElement('span');
+        categorySpan.className = 'text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600';
+        categorySpan.textContent = feed.category;
+
+        const articleCountSpan = document.createElement('span');
+        articleCountSpan.className = 'text-xs text-gray-500';
+        articleCountSpan.textContent = `${feed.articleCount} articles`;
+
+        const unreadCountSpan = document.createElement('span');
+        unreadCountSpan.className = 'text-xs text-gray-500';
+        unreadCountSpan.textContent = `${feed.unreadCount} unread`;
+
+        statsContainer.appendChild(categorySpan);
+        statsContainer.appendChild(articleCountSpan);
+        statsContainer.appendChild(unreadCountSpan);
+
+        detailsContainer.appendChild(nameHeading);
+        detailsContainer.appendChild(urlPara);
+        detailsContainer.appendChild(statsContainer);
+
+        leftContainer.appendChild(icon);
+        leftContainer.appendChild(detailsContainer);
+
+        // Button Icons
+        const articlesIcon = document.createElement('i');
+        articlesIcon.className = 'ri-article-line text-xl';
+
+        const deleteIcon = document.createElement('i');
+        deleteIcon.className = 'ri-delete-bin-line text-xl';
+
+        // Buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'flex items-center gap-4';
+
+        const articlesButton = document.createElement('button');
+        articlesButton.className = 'w-10 h-10 flex items-center justify-center text-gray-500 hover:text-primary hover:bg-gray-100 rounded';
+        articlesButton.addEventListener('click', () => {
+          showFeedArticles(feed.id);
+        });
+        articlesButton.appendChild(articlesIcon);
+        
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'w-10 h-10 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded';
+        deleteButton.addEventListener('click', () => {
+          showDeleteFeedModal(feed.id);
+        });
+        deleteButton.appendChild(deleteIcon);
+
+        buttonContainer.appendChild(articlesButton);
+        buttonContainer.appendChild(deleteButton);
+
+        contentContainer.appendChild(leftContainer);
+        contentContainer.appendChild(buttonContainer);
+        feedContainer.appendChild(contentContainer);
+        feedList.appendChild(feedContainer);
+      });
     }
 
     // Update feed count
@@ -153,12 +216,23 @@ async function renderFeeds() {
   } catch (error) {
     console.error("Render feeds failed:", error);
     const feedList = document.getElementById("feedList");
-    feedList.innerHTML = `
-    <div class="p-6 text-center text-red-500">
-      <i class="ri-error-warning-line text-4xl mb-2"></i>
-      <p>Failed to load feeds. Please try again later.</p>
-    </div>
-  `;
+    
+    while (feedList.firstChild) {
+      feedList.removeChild(feedList.firstChild);
+    }
+
+    const errorMsgContainer = document.createElement('div');
+    errorMsgContainer.className = 'p-6 text-center text-red-500';
+
+    const errorIcon = document.createElement('i');
+    errorIcon.className = 'ri-error-warning-line text-4xl';
+
+    const errorText = document.createElement('p');
+    errorText.textContent = 'Failed to load feeds. Please try again later.';
+
+    errorMsgContainer.appendChild(errorIcon);
+    errorMsgContainer.appendChild(errorText);
+    feedList.appendChild(errorMsgContainer);
   } finally {
     hideLoading();
   }
