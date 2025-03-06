@@ -101,7 +101,7 @@ async function renderFeeds() {
     const currentFeeds = mockFeeds.slice(startIndex, endIndex);
 
     while (feedList.firstChild) {
-      feedList.removeChild(feedList.firstChild);
+      feedList?.removeChild(feedList.firstChild);
     }
 
     if (currentFeeds.length === 0) {
