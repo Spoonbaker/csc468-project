@@ -36,15 +36,73 @@ const mockArticles = [
   },
   {
     id: 2,
-    title: "AI in Healthcare: A New Era",
+    title: "The Future of Sustainable Urban Planning",
+    summary:
+      "Cities worldwide are adopting green building standards and integrating smart transportation systems for a sustainable future...",
     date: "2025-02-25",
+    isUnread: true,
+    isBookmarked: true,
+  },
+  {
+    id: 3,
+    title: "Quantum Computing: The Next Generation",
+    summary:
+      "IBM's latest quantum processor breaks the 100-qubit barrier, opening new possibilities for complex computational problems...",
+    date: "2025-02-24",
+    isUnread: false,
+    isBookmarked: false,
+  },
+  {
+    id: 4,
+    title: "Deep Sea Discoveries: New Species Found",
+    summary:
+      "Scientists discover previously unknown species in the Mariana Trench, showcasing remarkable environmental adaptations...",
+    date: "2025-02-23",
     isUnread: true,
     isBookmarked: false,
   },
   {
-    id: 3,
-    title: "Machine Learning Revolutionizes Disease Detection",
-    date: "2025-02-24",
+    id: 5,
+    title: "Space Tourism: The Private Space Age",
+    summary:
+      "With SpaceX and Blue Origin advancing commercial space projects, civilian space travel becomes increasingly accessible...",
+    date: "2025-02-22",
+    isUnread: false,
+    isBookmarked: true,
+  },
+  {
+    id: 6,
+    title: "Blockchain Revolution in Supply Chain",
+    summary:
+      "Major industries adopt blockchain technology for enhanced supply chain transparency and traceability...",
+    date: "2025-02-21",
+    isUnread: true,
+    isBookmarked: false,
+  },
+  {
+    id: 7,
+    title: "5G Networks Transform IoT Landscape",
+    summary:
+      "The widespread deployment of 5G networks is enabling new IoT applications and transforming smart city infrastructure...",
+    date: "2025-02-20",
+    isUnread: true,
+    isBookmarked: false,
+  },
+  {
+    id: 8,
+    title: "Advances in Renewable Energy Storage",
+    summary:
+      "Breakthrough in battery technology promises to solve renewable energy storage challenges and accelerate clean energy adoption...",
+    date: "2025-02-19",
+    isUnread: false,
+    isBookmarked: true,
+  },
+  {
+    id: 9,
+    title: "The Rise of Digital Currencies",
+    summary:
+      "Central banks worldwide are developing digital currencies, potentially reshaping the future of global finance...",
+    date: "2025-02-18",
     isUnread: true,
     isBookmarked: false,
   },
