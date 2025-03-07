@@ -35,4 +35,9 @@ export default {
     }),
     tailwindcss(),
   ],
+  server: {
+    headers: {
+      "Content-Security-Policy": "default-src 'self'; img-src https://*",
+    },
+  },
 } satisfies UserConfig;
