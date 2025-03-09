@@ -10,9 +10,14 @@ clean:
     rm report/main.pdf
     fd --no-ignore result --type symlink --exec rm
 
+# Clear up space in podman (may be destructive!)
+container-clean:
+    podman container prune --force
+    podman image prune --force
+
 # Build the frontend container and import it into podman
-frontend-load:
-    $(nix build --no-link --print-out-paths .#frontend-container-stream) | podman image load
+container-load container:
+    $(nix build --no-link --print-out-paths .#{{ container }}-container-stream) | podman image load
 
 # Run the frontend container with podman
 frontend-run:
@@ -21,3 +26,7 @@ frontend-run:
         -p 5080:80 \
         -p 5443:443 \
         frontend-nginx
+
+# Run the database container with podman
+db-run:
+    podman run -it --rm db
