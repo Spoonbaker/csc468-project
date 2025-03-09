@@ -5,6 +5,17 @@
   outputs = { flakelight, ... }: flakelight ./. ({ config, ... }: {
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
+    # TODO: containers
+    # - staticly compile container stuff?
+    # - reduce size
+    #   - postgres
+    #     - icuSupport = false
+    #     - pamSupport = false
+    #     - systemdSupport = false
+    #     - sqlite!?
+    #   - nginx
+    #     - no xml stuff
+    # - add built image outputs?
     packages = {
       # TODO: blindly copied
       frontend = { buildNpmPackage, importNpmLock }: buildNpmPackage {
@@ -24,7 +35,6 @@
         nginxRoot = "${nginx}";
       };
 
-      # TODO: also export built image?
       frontend-container-stream = { lib, dockerTools, nginx, frontend-nginx-conf, fakeNss }: dockerTools.streamLayeredImage {
         name = "frontend-nginx";
         tag = "latest";
@@ -33,6 +43,7 @@
           fakeNss
         ];
 
+        # TODO: what does it put here?
         extraCommands = ''
           mkdir tmp
           chmod 1777 tmp
@@ -46,6 +57,59 @@
           };
           Volumes = {
             "/cert" = { }; # Expects cert.crt & key.pem
+          };
+        };
+      };
+
+      dbInit = { rustPlatform }: rustPlatform.buildRustPackage {
+        name = "db-init";
+        meta.mainProgram = "db-init";
+
+        src = ./containers/db-init;
+        cargoLock.lockFile = ./containers/db-init/Cargo.lock;
+      };
+
+      postgres-conf = { runCommandNoCC }: runCommandNoCC "postgres-conf" { } "touch $out";
+
+      db-container-stream = { lib, dockerTools, fakeNss, dbInit, postgresql, postgres-conf }: dockerTools.streamLayeredImage {
+        name = "db";
+        tag = "latest";
+
+        contents = [
+          dockerTools.binSh # `initdb` needs this # TODO: dash?
+          fakeNss
+          postgresql # For `podman exec ... psql` and such
+        ];
+
+        # Postgres listens on local sockets in `/run/postgresql`
+        # We keep this mostly so we can do `podman exec ... psql <args>`
+        extraCommands = ''
+          mkdir -p run/postgresql
+          chmod 777 run/postgresql
+        ''; # We do 777 because postgres is the only thing running
+
+        config = {
+          # TODO: should we do /bin/postgres? that would remove it from the
+          # customization layer
+          Cmd = [
+            "${lib.getExe dbInit}"
+            "${postgresql}/bin/postgres"
+            "${postgres-conf}"
+            "${postgresql}/bin/initdb"
+            "${./containers/init.sql}"
+          ];
+          User = "nobody:nobody";
+          # TODO: does it use both TCP and UDP?
+          ExposedPorts = {
+            "5432/tcp" = { };
+            "5432/udp" = { };
+          };
+          Env = [
+            "LANG=C.UTF-8"
+            "PGDATA=/db"
+          ];
+          Volumes = {
+            "/db" = { }; # This is initialized automagically
           };
         };
       };
@@ -65,6 +129,9 @@
       # - All packages
       # - Formatting of all files
       # - NixOS systems with same `system`
+
+      # TODO: check postgres conf
+      # TODO: check init.sql
 
       report-matches = { runCommand, final-report, ... }: runCommand "report-matches" { } ''
         diff -q ${final-report} ${./report.pdf} |\

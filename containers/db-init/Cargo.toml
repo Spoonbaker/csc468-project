@@ -1,0 +1,6 @@
+[package]
+name = "db-init"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.97"
