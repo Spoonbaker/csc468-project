@@ -10,6 +10,10 @@ clean:
     rm report/main.pdf
     fd --no-ignore result --type symlink --exec rm
 
+# Show all T_ODO and F_IXME comments
+show-todos:
+    rg -C 5 "T()ODO|F()IXME"
+
 # Clear up space in podman (may be destructive!)
 container-clean:
     podman container prune --force
@@ -22,12 +26,14 @@ container-load container:
 # Run the frontend container with podman
 frontend-run:
     podman run -it --rm \
-        -v ./containers/devCert:/cert/:ro \
+        -v ./containers/devCert/:/cert/:ro \
         -p 5080:80 \
         -p 5443:443 \
         frontend-nginx
 
 # Run the database container with podman
 db-run:
-    podman run -it --rm db
+    podman run -it --rm \
+        -p 5432:5432 \
+        db
 
