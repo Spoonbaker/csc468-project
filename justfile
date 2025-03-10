@@ -14,10 +14,10 @@ clean:
 frontend-load:
     $(nix build --no-link --print-out-paths .#frontend-container-stream) | podman image load
 
+# Run the frontend container with podman
 frontend-run:
-    podman run -it \
-        -v ./containers/cert.crt:/cert/cert.crt:ro \
-        -v ./containers/key.pem:/cert/key.pem:ro \
+    podman run -it --rm \
+        -v ./containers/devCert:/cert/:ro \
         -p 5080:80 \
         -p 5443:443 \
         frontend-nginx
