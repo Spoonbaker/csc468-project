@@ -9,7 +9,7 @@ import tailwindcss from "@tailwindcss/vite";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // From https://github.com/codyebberson/wglt/blob/5d397e89cc3389895a74adb2ac6a562f68dc5c36/vite.config.ts#L12-L14
-const htmlFiles = globSync("./*.html"); // FIXME: we shouldn't depend on glob
+const htmlFiles = globSync("./*.html");
 const input = Object.fromEntries(
   htmlFiles.map((file) => [file.replace("./", ""), resolve(__dirname, file)]),
 );
@@ -19,7 +19,8 @@ export default {
   },
   css: {
     transformer: "lightningcss",
-    lightningcss: {}, // TODO: sourcemaps in dev mode?
+    lightningcss: {},
+    devSourcemap: true, // This might not even work with Tailwind
   },
   build: {
     cssMinify: "lightningcss",
