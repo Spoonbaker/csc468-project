@@ -25,7 +25,6 @@
 
 
 #counter(page).update(0) // Page 1 is after title page
-// TODO: readers don't seem to like this being 0
 
 // Title page
 #{
@@ -36,8 +35,6 @@
   set par(justify: true) // This is here in case the global justify is removed
 
   [
-    // TODO: logo
-
     = #teamName
     #text(1.5em)[_An RSS & Atom Feed Reader_]
 
@@ -77,7 +74,7 @@
       ],
       width: 1fr,
       height: 0.6em,
-    ) // TODO: do we want the line?
+    )
 
     emph[CSC 468]
   },
@@ -204,10 +201,3 @@ We plan to do development in individual or team feature branches, and use PRs
 to merge completed features. This ensures proper code review, while enabling the
 group to work efficiently on several things at once.
 
-
-// = References
-// TODO: cite:
-// Build tools
-// GH repo
-// GH project
-//

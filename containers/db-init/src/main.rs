@@ -9,7 +9,6 @@ use std::{
 };
 
 fn main() -> anyhow::Result<()> {
-    // TODO: allow flags to `initdb`? like `--data-checksums`
     if let [_, postgres, pg_conf, initdb, initscript] = &*env::args_os().collect::<Vec<_>>() {
         let pgdata = env::var_os("PGDATA").context("$PGDATA must be set")?;
 
@@ -59,10 +58,6 @@ fn main() -> anyhow::Result<()> {
                 .status()
                 .context("While running `postgres --single` initialization")?;
             ensure!(status.success(), "`postgres --single` encountered errors");
-            // FIXME?: `postgres --single` doesn't exit on invalid SQL
-
-            // TODO: initialize db
-            // - create user for backend
         }
 
         let res = Command::new(postgres)

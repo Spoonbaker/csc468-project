@@ -1,23 +1,10 @@
 {
-  # TODO: use our own nixpkgs?
   inputs.flakelight.url = "github:nix-community/flakelight";
 
   outputs = { flakelight, ... }: flakelight ./. ({ config, ... }: {
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
-    # TODO: containers
-    # - staticly compile container stuff?
-    # - reduce size
-    #   - postgres
-    #     - icuSupport = false
-    #     - pamSupport = false
-    #     - systemdSupport = false
-    #     - sqlite!?
-    #   - nginx
-    #     - no xml stuff
-    # - add built image outputs?
     packages = {
-      # TODO: blindly copied
       frontend = { buildNpmPackage, importNpmLock }: buildNpmPackage {
         name = "frontend";
         src = ./frontend;
@@ -43,7 +30,6 @@
           fakeNss
         ];
 
-        # TODO: what does it put here?
         extraCommands = ''
           mkdir tmp
           chmod 1777 tmp
@@ -79,7 +65,7 @@
         tag = "latest";
 
         contents = [
-          dockerTools.binSh # `initdb` needs this # TODO: dash?
+          dockerTools.binSh # `initdb` needs this
           fakeNss
           postgresql # For `podman exec ... psql` and such
         ];
@@ -92,19 +78,15 @@
         ''; # We do 777 because postgres is the only thing running
 
         config = {
-          # TODO: should we do /bin/postgres? that would remove it from the
-          # customization layer
           Cmd = [
             "${lib.getExe dbInit}"
-            "${postgresql}/bin/postgres"
+            "/bin/postgres"
             "${postgres-conf}"
-            "${postgresql}/bin/initdb"
+            "/bin/initdb"
             "${./containers/init.sql}"
           ];
-          # TODO: does it use both TCP and UDP?
           ExposedPorts = {
             "5432/tcp" = { };
-            "5432/udp" = { };
           };
           Env = [
             "LANG=C.UTF-8"
@@ -132,9 +114,6 @@
       # - Formatting of all files
       # - NixOS systems with same `system`
 
-      # TODO: check postgres conf
-      # TODO: check init.sql
-
       report-matches = { runCommand, final-report, ... }: runCommand "report-matches" { } ''
         diff -q ${final-report} ${./report.pdf} |\
           sed 's/Files .* and .* differ/Report not updated! Run `just report`./g'
@@ -148,7 +127,6 @@
       };
     };
 
-    # TODO: do we want multiple devShells?
     devShell.packages = pkgs: __attrValues {
       inherit (pkgs)
         just

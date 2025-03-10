@@ -1,6 +1,6 @@
-# CSC 468 Project
+# Aggre-Gator
 
-<!-- TODO: Decide on name -->
+Aggre-Gator is a cloud-based RSS & Atom feed reader. This was done for Dr. Ngo's CSC 468 - Introduction to Cloud Computing at West Chester University of Pennsylvania. You may want to look at the [report](./report.pdf)
 
 ## Development Shell
 
