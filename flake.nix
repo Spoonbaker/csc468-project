@@ -69,7 +69,10 @@
         cargoLock.lockFile = ./containers/db-init/Cargo.lock;
       };
 
-      postgres-conf = { runCommandNoCC }: runCommandNoCC "postgres-conf" { } "touch $out";
+      postgres-conf = { substituteAll, frontend, nginx }: substituteAll {
+        src = ./containers/postgresql.conf;
+        hbaFile = "${./containers/pg_hba.conf}";
+      };
 
       db-container-stream = { lib, dockerTools, fakeNss, dbInit, postgresql, postgres-conf }: dockerTools.streamLayeredImage {
         name = "db";
