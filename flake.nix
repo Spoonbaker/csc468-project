@@ -1,5 +1,4 @@
 {
-  # TODO: use our own nixpkgs?
   inputs.flakelight.url = "github:nix-community/flakelight";
 
   outputs = { flakelight, ... }: flakelight ./. ({ config, ... }: {
@@ -24,7 +23,6 @@
         nginxRoot = "${nginx}";
       };
 
-      # TODO: also export built image?
       frontend-container-stream = { lib, dockerTools, nginx, frontend-nginx-conf, fakeNss }: dockerTools.streamLayeredImage {
         name = "frontend-nginx";
         tag = "latest";
@@ -46,6 +44,58 @@
           };
           Volumes = {
             "/cert" = { }; # Expects cert.crt & key.pem
+          };
+        };
+      };
+
+      dbInit = { rustPlatform }: rustPlatform.buildRustPackage {
+        name = "db-init";
+        meta.mainProgram = "db-init";
+
+        src = ./containers/db-init;
+        cargoLock.lockFile = ./containers/db-init/Cargo.lock;
+      };
+
+      postgres-conf = { substituteAll, frontend, nginx }: substituteAll {
+        src = ./containers/postgresql.conf;
+        hbaFile = "${./containers/pg_hba.conf}";
+      };
+
+      db-container-stream = { lib, dockerTools, fakeNss, dbInit, postgresql, postgres-conf }: dockerTools.streamLayeredImage {
+        name = "db";
+        tag = "latest";
+
+        contents = [
+          dockerTools.binSh # `initdb` needs this
+          fakeNss
+          postgresql # For `podman exec ... psql` and such
+        ];
+
+        # Postgres listens on local sockets in `/run/postgresql`
+        # We keep this mostly so we can do `podman exec ... psql <args>`
+        extraCommands = ''
+          mkdir -p run/postgresql
+          chmod 777 run/postgresql
+        ''; # We do 777 because postgres is the only thing running
+
+        config = {
+          Cmd = [
+            "${lib.getExe dbInit}"
+            "/bin/postgres"
+            "${postgres-conf}"
+            "/bin/initdb"
+            "${./containers/init.sql}"
+          ];
+          User = "nobody:nobody";
+          ExposedPorts = {
+            "5432/tcp" = { };
+          };
+          Env = [
+            "LANG=C.UTF-8"
+            "PGDATA=/db"
+          ];
+          Volumes = {
+            "/db" = { }; # This is initialized automagically
           };
         };
       };
@@ -79,7 +129,6 @@
       };
     };
 
-    # TODO: do we want multiple devShells?
     devShell.packages = pkgs: __attrValues {
       inherit (pkgs)
         just
