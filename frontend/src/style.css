@@ -1,5 +1,7 @@
 /* The `layer(base)` breaks this, not sure why*/
-@import "remixicon/fonts/remixicon.css" /*layer(base)*/;
+@import "remixicon/fonts/remixicon.css"
+/*layer(base)*/
+;
 @import "@fontsource/pacifico" layer(base);
 
 @import "tailwindcss";
@@ -29,6 +31,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+
   *,
   ::after,
   ::before,
@@ -76,4 +79,37 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 0.5rem;
   padding: 1rem;
   background-color: #f9fafb;
+}
+
+/* Solve the black screen problem when waiting for loading */
+#loadingIndicator {
+  background-color: transparent !important;
+}
+
+
+#loginModal {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+#loginModal.show {
+  display: flex;
+}
+
+#deleteFeedModal {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+#deleteModal {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  /* Change to semi-transparent */
 }

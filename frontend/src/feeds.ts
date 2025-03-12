@@ -87,8 +87,8 @@ function formatDate(dateString) {
   });
 }
 
-// Render feeds list
-async function renderFeeds() {
+// Render feeds list (supports search functionality)
+async function renderFeeds(query = "") {
   showLoading();
 
   try {
@@ -96,114 +96,98 @@ async function renderFeeds() {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const feedList = document.getElementById("feedList");
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentFeeds = mockFeeds.slice(startIndex, endIndex);
+    if (!feedList) return console.error("❌ feedList not found");
 
-    while (feedList.firstChild) {
-      feedList?.removeChild(feedList.firstChild);
+    // Filter feeds based on search query (search by name only)
+    const filteredFeeds = mockFeeds.filter(feed =>
+      feed.name.toLowerCase().includes(query.toLowerCase())
+    );
+
+    // Clear the feed list
+    feedList.innerHTML = "";
+
+    // Display message if no matching feeds are found
+    if (filteredFeeds.length === 0) {
+      feedList.innerHTML = `<p class="text-gray-500 p-4">No feeds found</p>`;
+      return;
     }
 
-    if (currentFeeds.length === 0) {
-      const container = document.createElement('div');
-      container.className = 'p-6 text-center';
+    // Render matching feeds
+    filteredFeeds.forEach(feed => {
+      const feedContainer = document.createElement("div");
+      feedContainer.className = "p-4 hover:bg-gray-50 border-b flex justify-between items-center";
 
-      const icon = document.createElement('i');
-      icon.className = 'ri-rss-line text-4xl text-gray-400 mb-2';
+      const contentContainer = document.createElement("div");
+      contentContainer.className = "flex items-center gap-3";
 
-      const text = document.createElement('p');
-      text.className = 'text-gray-500';
-      text.textContent = 'No feeds available';
+      const icon = document.createElement("img");
+      icon.src = feed.favicon;
+      icon.alt = "";
+      icon.className = "w-8 h-8 rounded-full bg-gray-100";
 
-      container.appendChild(icon);
-      container.appendChild(text);
-      feedList.appendChild(container);
-    } else {
-      currentFeeds.forEach(feed => {
-        const feedContainer = document.createElement('div');
-        feedContainer.className = 'p-4 hover:bg-gray-50';
+      const detailsContainer = document.createElement("div");
 
-        const contentContainer = document.createElement('div');
-        contentContainer.className = 'p-4 flex justify-between items-start';
+      const nameHeading = document.createElement("h3");
+      nameHeading.className = "font-medium text-gray-900";
+      nameHeading.textContent = feed.name;
 
-        const leftContainer = document.createElement('div');
-        leftContainer.className = 'flex items-center gap-3';
+      const urlPara = document.createElement("p");
+      urlPara.className = "text-sm text-gray-500";
+      urlPara.textContent = feed.url;
 
-        const icon = document.createElement('img');
-        icon.src = feed.favicon;
-        icon.alt = '';
-        icon.className = 'w-8 h-8 rounded-full bg-gray-100';
+      const statsContainer = document.createElement("div");
+      statsContainer.className = "flex items-center gap-4 mt-2";
 
-        const detailsContainer = document.createElement('div');
+      const categorySpan = document.createElement("span");
+      categorySpan.className = "text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600";
+      categorySpan.textContent = feed.category;
 
-        const nameHeading = document.createElement('h3');
-        nameHeading.className = 'font-medium text-gray-900';
-        nameHeading.textContent = feed.name;
+      const articleCountSpan = document.createElement("span");
+      articleCountSpan.className = "text-xs text-gray-500";
+      articleCountSpan.textContent = `${feed.articleCount} articles`;
 
-        const urlPara = document.createElement('p');
-        urlPara.className = 'text-sm text-gray-500';
-        urlPara.textContent = feed.url;
+      const unreadCountSpan = document.createElement("span");
+      unreadCountSpan.className = "text-xs text-gray-500";
+      unreadCountSpan.textContent = `${feed.unreadCount} unread`;
 
-        const statsContainer = document.createElement('div');
-        statsContainer.className = 'flex items-center gap-4 mt-2';
+      statsContainer.appendChild(categorySpan);
+      statsContainer.appendChild(articleCountSpan);
+      statsContainer.appendChild(unreadCountSpan);
 
-        const categorySpan = document.createElement('span');
-        categorySpan.className = 'text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600';
-        categorySpan.textContent = feed.category;
+      detailsContainer.appendChild(nameHeading);
+      detailsContainer.appendChild(urlPara);
+      detailsContainer.appendChild(statsContainer);
 
-        const articleCountSpan = document.createElement('span');
-        articleCountSpan.className = 'text-xs text-gray-500';
-        articleCountSpan.textContent = `${feed.articleCount} articles`;
+      contentContainer.appendChild(icon);
+      contentContainer.appendChild(detailsContainer);
 
-        const unreadCountSpan = document.createElement('span');
-        unreadCountSpan.className = 'text-xs text-gray-500';
-        unreadCountSpan.textContent = `${feed.unreadCount} unread`;
+      // Buttons container
+      const buttonContainer = document.createElement("div");
+      buttonContainer.className = "flex items-center gap-3";
 
-        statsContainer.appendChild(categorySpan);
-        statsContainer.appendChild(articleCountSpan);
-        statsContainer.appendChild(unreadCountSpan);
-
-        detailsContainer.appendChild(nameHeading);
-        detailsContainer.appendChild(urlPara);
-        detailsContainer.appendChild(statsContainer);
-
-        leftContainer.appendChild(icon);
-        leftContainer.appendChild(detailsContainer);
-
-        // Button Icons
-        const articlesIcon = document.createElement('i');
-        articlesIcon.className = 'ri-article-line text-xl';
-
-        const deleteIcon = document.createElement('i');
-        deleteIcon.className = 'ri-delete-bin-line text-xl';
-
-        // Buttons
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'flex items-center gap-4';
-
-        const articlesButton = document.createElement('button');
-        articlesButton.className = 'w-10 h-10 flex items-center justify-center text-gray-500 hover:text-primary hover:bg-gray-100 rounded';
-        articlesButton.addEventListener('click', () => {
-          showFeedArticles(feed.id);
-        });
-        articlesButton.appendChild(articlesIcon);
-        
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'w-10 h-10 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded';
-        deleteButton.addEventListener('click', () => {
-          showDeleteFeedModal(feed.id);
-        });
-        deleteButton.appendChild(deleteIcon);
-
-        buttonContainer.appendChild(articlesButton);
-        buttonContainer.appendChild(deleteButton);
-
-        contentContainer.appendChild(leftContainer);
-        contentContainer.appendChild(buttonContainer);
-        feedContainer.appendChild(contentContainer);
-        feedList.appendChild(feedContainer);
+      // View articles button
+      const articlesButton = document.createElement("button");
+      articlesButton.className = "w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary";
+      articlesButton.innerHTML = '<i class="ri-article-line text-xl"></i>';
+      articlesButton.addEventListener("click", () => {
+        showFeedArticles(feed.id);
       });
-    }
+
+      // Delete button
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "w-8 h-8 flex items-center justify-center text-gray-500 hover:text-red-500";
+      deleteButton.innerHTML = '<i class="ri-delete-bin-line text-xl"></i>';
+      deleteButton.addEventListener("click", () => {
+        showDeleteFeedModal(feed.id);
+      });
+
+      buttonContainer.appendChild(articlesButton);
+      buttonContainer.appendChild(deleteButton);
+
+      feedContainer.appendChild(contentContainer);
+      feedContainer.appendChild(buttonContainer);
+      feedList.appendChild(feedContainer);
+    });
 
     // Update feed count
     document.getElementById("feedCount").textContent = `${mockFeeds.length} feeds`;
@@ -214,25 +198,8 @@ async function renderFeeds() {
     // Update statistics
     updateStatistics();
   } catch (error) {
-    console.error("Render feeds failed:", error);
-    const feedList = document.getElementById("feedList");
-    
-    while (feedList.firstChild) {
-      feedList.removeChild(feedList.firstChild);
-    }
-
-    const errorMsgContainer = document.createElement('div');
-    errorMsgContainer.className = 'p-6 text-center text-red-500';
-
-    const errorIcon = document.createElement('i');
-    errorIcon.className = 'ri-error-warning-line text-4xl';
-
-    const errorText = document.createElement('p');
-    errorText.textContent = 'Failed to load feeds. Please try again later.';
-
-    errorMsgContainer.appendChild(errorIcon);
-    errorMsgContainer.appendChild(errorText);
-    feedList.appendChild(errorMsgContainer);
+    console.error("❌ Failed to load feeds:", error);
+    feedList.innerHTML = `<p class="text-red-500 p-4">Failed to load feeds. Please try again later.</p>`;
   } finally {
     hideLoading();
   }
@@ -337,11 +304,20 @@ function showDeleteFeedModal(id) {
   document.getElementById("deleteFeedModal").style.display = "flex";
 }
 
-// Close delete feed modal
+// Close delete feed modal (supports X button & Cancel button)
 function closeDeleteFeedModal() {
-  document.getElementById("deleteFeedModal").style.display = "none";
+  const modal = document.getElementById("deleteFeedModal");
+  if (modal) {
+    modal.style.display = "none";
+  }
   currentDeleteFeedId = null;
 }
+
+// Attach event listeners to close buttons
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("closeDeleteModal")?.addEventListener("click", closeDeleteFeedModal);
+  document.getElementById("cancelDelete")?.addEventListener("click", closeDeleteFeedModal);
+});
 
 // Confirm delete feed
 async function confirmDeleteFeed() {
@@ -403,5 +379,18 @@ function showToast(message) {
 document.getElementById("prevPageBtn").addEventListener("click", prevPage);
 document.getElementById("nextPageBtn").addEventListener("click", nextPage);
 
+//search feeds
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      renderFeeds(e.target.value.toLowerCase());
+    });
+  }
+});
+
 // Initialize
-renderFeeds();
+document.addEventListener("DOMContentLoaded", () => {
+  renderFeeds();
+});
+
