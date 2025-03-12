@@ -237,24 +237,34 @@ function handleSearch(searchTerm) {
 // Show delete modal
 function showDeleteModal(id) {
   currentDeleteId = id;
-  document.getElementById("deleteModal").style.display = "flex";
+  const modal = document.getElementById("deleteModal");
+  if (!modal) {
+    console.error("❌ deleteModal not found!");
+    return;
+  }
+  modal.classList.remove("hidden");
+  modal.style.display = "flex";
 }
+
+
 
 // Close delete modal
 function closeDeleteModal() {
-  document.getElementById("deleteModal").style.display = "none";
+  const modal = document.getElementById("deleteModal");
+  modal?.classList.add("hidden");
+  modal.style.display = "none";
   currentDeleteId = null;
 }
 
 // Confirm delete
 function confirmDelete() {
   if (currentDeleteId !== null) {
-    const index = mockBookmarks.findIndex((bookmark) => bookmark.id === currentDeleteId);
+    // Remove the article from bookmarks
+    const index = mockBookmarkedArticles.findIndex((article) => article.id === currentDeleteId);
     if (index !== -1) {
-      mockBookmarks.splice(index, 1);
-      filteredBookmarks = [...mockBookmarks];
-      showToast("Bookmark removed");
-      renderBookmarks();
+      mockBookmarkedArticles.splice(index, 1);
+      renderBookmarkedArticles(); // Refresh the bookmarks list
+      showToast("Article removed from bookmarks");
     }
   }
   closeDeleteModal();
@@ -306,6 +316,16 @@ document.getElementById("searchInput").addEventListener("input", (e) => {
 
 document.getElementById("sortOrder").addEventListener("change", (e) => {
   sortBookmarks(e.target.value);
+});
+
+// Ensure event listeners are added after DOM is fully loaded
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".delete-btn").forEach(button => {
+    button.addEventListener("click", (e) => {
+      const articleId = e.target.dataset.id;
+      showDeleteModal(articleId);
+    });
+  });
 });
 
 // Initialize

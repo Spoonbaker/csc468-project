@@ -19,7 +19,7 @@ function renderUnreadList() {
   const endIndex = startIndex + unreadItemsPerPage;
   const currentUnreadArticles = unreadArticles.slice(startIndex, endIndex);
 
-  while(unreadList.firstChild){
+  while (unreadList.firstChild) {
     unreadList?.removeChild(unreadList.firstChild);
   }
 
@@ -29,7 +29,7 @@ function renderUnreadList() {
     unreadArticleContainer.addEventListener('click', () => {
       readArticle(article.id);
     });
-    
+
     const circle = document.createElement('div');
     circle.className = 'w-2 h-2 mt-2 rounded-full bg-primary';
 
@@ -235,7 +235,7 @@ function renderFilteredArticles(articles) {
   while (articleList.firstChild) {
     articleList.removeChild(articleList.firstChild);
   }
-  
+
   if (articles.length === 0) {
     const noArticlesFoundContainer = document.createElement('div');
     noArticlesFoundContainer.className = 'col-span-full text-center py-8';
@@ -260,7 +260,7 @@ function renderFilteredArticles(articles) {
 
     const articleContainer = document.createElement('div');
     articleContainer.className = 'p-6';
-    
+
     const titleDeleteButton = document.createElement('div');
     titleDeleteButton.className = 'flex justify-between items-start mb-4';
 
@@ -312,7 +312,7 @@ function renderFilteredArticles(articles) {
     shareButton.addEventListener('click', () => {
       shareArticle(article.id);
     });
-    
+
     const date = document.createElement('time');
     date.className = 'text-sm text-gray-500';
     date.textContent = article.date;
@@ -340,7 +340,7 @@ function renderFilteredArticles(articles) {
     articleCard.appendChild(articleContainer);
     articleCard.appendChild(readMoreContainer);
     articleList?.appendChild(articleCard);
-});
+  });
 }
 
 // Search input listener
@@ -375,90 +375,90 @@ async function renderArticles() {
     currentArticles.forEach(article => {
       const articleCard = document.createElement('div');
       articleCard.className = `bg-white rounded-lg shadow-sm overflow-hidden ${article.isUnread ? "ring-1 ring-primary/10" : ""}`;
-  
+
       const articleContainer = document.createElement('div');
       articleContainer.className = 'p-6';
-      
+
       const titleDeleteButton = document.createElement('div');
       titleDeleteButton.className = 'flex justify-between items-start mb-4';
-  
+
       const title = document.createElement('h2');
       title.className = `text-lg ${article.isUnread ? "font-bold" : "font-medium"} text-gray-900`;
       title.textContent = article.title;
-  
+
       const deleteIcon = document.createElement('i');
       deleteIcon.className = 'ri-delete-bin-line';
-  
+
       const deleteButton = document.createElement('button');
       deleteButton.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500';
       deleteButton.appendChild(deleteIcon);
       deleteButton.addEventListener('click', () => {
         showDeleteModal(article.id);
       });
-  
+
       titleDeleteButton.appendChild(title);
       titleDeleteButton.appendChild(deleteButton);
-  
+
       // Summary
       const summary = document.createElement('p');
       summary.className = 'text-gray-600 mb-4 text-sm';
       summary.textContent = article.summary;
-  
+
       // Stats 
       const statsContainer = document.createElement('div');
       statsContainer.className = 'flex items-center justify-between';
-  
+
       const buttonContainer = document.createElement('div');
       buttonContainer.className = 'flex items-center gap-3';
-  
+
       const bookmarkIcon = document.createElement('i');
       bookmarkIcon.className = `ri-bookmark-${article.isBookmarked ? "fill" : "line"}`;
-  
+
       const shareIcon = document.createElement('i');
       shareIcon.className = 'ri-share-line';
-  
+
       const bookmarkButton = document.createElement('button');
       bookmarkButton.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary';
       bookmarkButton.appendChild(bookmarkIcon);
       bookmarkButton.addEventListener('click', () => {
         toggleBookmark(article.id);
       });
-  
+
       const shareButton = document.createElement('button');
       shareButton.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary';
       shareButton.appendChild(shareIcon);
       shareButton.addEventListener('click', () => {
         shareArticle(article.id);
       });
-      
+
       const date = document.createElement('time');
       date.className = 'text-sm text-gray-500';
       date.textContent = article.date;
-  
+
       buttonContainer.appendChild(bookmarkButton);
       buttonContainer.appendChild(shareButton);
       statsContainer.appendChild(buttonContainer)
       statsContainer.appendChild(date);
-  
+
       const readMoreContainer = document.createElement('div');
       readMoreContainer.className = 'px-6 py-4 bg-gray-50 border-t';
-  
+
       const readMoreButton = document.createElement('button');
       readMoreButton.className = 'w-full py-2 bg-primary text-white !rounded-button hover:bg-secondary';
       readMoreButton.textContent = 'Read More';
       readMoreButton.addEventListener('click', () => {
         readArticle(article.id);
       });
-  
+
       readMoreContainer.appendChild(readMoreButton);
-  
+
       articleContainer.appendChild(titleDeleteButton);
       articleContainer.appendChild(summary);
       articleContainer.appendChild(statsContainer);
       articleCard.appendChild(articleContainer);
       articleCard.appendChild(readMoreContainer);
       articleList?.appendChild(articleCard);
-  });
+    });
 
   } catch (error) {
     console.error("Render articles failed:", error);
@@ -490,11 +490,44 @@ function closeDeleteModal() {
   currentDeleteId = null;
 }
 function showLoginModal() {
-  document.getElementById("loginModal").style.display = "flex";
+  document.getElementById("loginModal")?.classList.add("show");
 }
+
 function closeLoginModal() {
-  document.getElementById("loginModal").style.display = "none";
+  document.getElementById("loginModal")?.classList.remove("show");
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const loginButton = document.getElementById("loginButton");
+  const loginModal = document.getElementById("loginModal");
+  const closeButton = document.getElementById("closeLogin");
+
+  if (!loginButton || !loginModal || !closeButton) {
+    console.error("❌ One or more login modal elements not found!");
+    return;
+  }
+
+  function showLoginModal() {
+    console.log("✅ Showing login modal");
+    loginModal.classList.remove("hidden");
+    loginModal.style.display = "flex";
+  }
+
+  function closeLoginModal() {
+    console.log("✅ Closing login modal");
+    loginModal.classList.add("hidden");
+    loginModal.style.display = "none";
+  }
+
+  loginButton.addEventListener("click", showLoginModal);
+  closeButton.addEventListener("click", closeLoginModal);
+  document.getElementById("cancelDelete")?.addEventListener("click", closeDeleteModal);
+  document.getElementById("closeDelete")?.addEventListener("click", closeDeleteModal);
+});
+
+
+
+
 function confirmDelete() {
   if (currentDeleteId !== null) {
     const index = mockArticles.findIndex((article) => article.id === currentDeleteId);
