@@ -1,0 +1,7 @@
+services:
+  frontend-nginx:
+    ports: !override
+      - "5080:80"
+      - "5443:443"
+    volumes: !override
+      - "./devCert/:/cert/:ro"

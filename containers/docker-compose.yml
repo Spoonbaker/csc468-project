@@ -1,0 +1,45 @@
+services:
+  db:
+    image: db:latest
+    hostname: db
+    networks:
+      - aggregator
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "--host",
+          "localhost",
+          "--username",
+          "nobody",
+          "--dbname",
+          "postgres",
+        ]
+      interval: 30s # Command is cheap, we can do it often
+      timeout: 10s
+      retries: 1 # If we can't connect even once, that's *bad*
+      start_period: 20s # Delays healthcheck
+      # start_interval doesn't seem to work with podman
+  backend-api:
+    image: backend-api:latest
+    hostname: backend-api
+    networks:
+      - aggregator
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+  frontend-nginx:
+    image: frontend-nginx:latest
+    # Doesn't need hostname; accessible from inet, not containers
+    networks:
+      - aggregator
+    depends_on:
+      - backend-api
+    ports:
+      # This is overridden in dev
+      - "80:80"
+      - "443:443"
+networks:
+  aggregator:
