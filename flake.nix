@@ -86,7 +86,6 @@
             "/bin/initdb"
             "${./containers/init.sql}"
           ];
-          User = "nobody:nobody";
           ExposedPorts = {
             "5432/tcp" = { };
           };
