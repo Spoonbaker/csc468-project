@@ -1,0 +1,11 @@
+[package]
+name = "backend-api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.97"
+axum = { version = "0.8.1", features = ["json", "macros"] }
+serde = { version = "1.0.219", features = ["derive"] }
+tokio = { version = "1.44.1", features = ["rt-multi-thread"] }
+tokio-postgres = "0.7.13"

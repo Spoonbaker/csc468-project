@@ -1,0 +1,4 @@
+# This file is read by Helix, ripgrep, and probably other stuff
+
+# Rust stuffs
+target/
