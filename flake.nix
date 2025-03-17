@@ -22,7 +22,7 @@
         nginxRoot = "${nginx}";
       };
 
-      frontend-container-stream = { lib, dockerTools, nginx, frontend-nginx-conf, fakeNss }: dockerTools.streamLayeredImage {
+      frontend-nginx-container-stream = { lib, dockerTools, nginx, frontend-nginx-conf, fakeNss }: dockerTools.streamLayeredImage {
         name = "frontend-nginx";
         tag = "latest";
 

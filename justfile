@@ -2,6 +2,12 @@
 
 ENG := `which podman > /dev/null 2>&1 && echo podman || echo docker`
 
+# prod: we're on Cloudlab or similar, deploying
+# dev: local dev machine, might not have privs for ports <1024
+# Override with `just ENV=prod <cmd>`
+
+ENV := "dev"
+
 _default:
     @just --list --unsorted --justfile "{{ justfile() }}"
 
@@ -23,16 +29,14 @@ containers-clean:
 container-load container:
     $(nix build --no-link --print-out-paths .#{{ container }}-container-stream) | {{ ENG }} image load
 
-# Run the frontend container with podman/docker
-frontend-run:
-    {{ ENG }} run -it --rm \
-        -v ./containers/devCert/:/cert/:ro \
-        -p 5080:80 \
-        -p 5443:443 \
-        frontend-nginx
+# Run docker-compose
+compose +ARGS:
+    {{ ENG }} compose \
+        -f containers/docker-compose.yml \
+        {{ if ENV == "dev" { "-f containers/docker-compose.dev.yml" } else { "" } }} \
+        {{ ARGS }}
 
-# Run the database container with podman/docker
-db-run:
-    {{ ENG }} run -it --rm \
-        -p 5432:5432 \
-        db
+# Load all images and start the deployment
+deploy: (container-load "db") (container-load "backend-api") (container-load "frontend-nginx")
+    # Having this as a recipe instead of dependency makes CTRL+C work
+    @just --justfile "{{ justfile() }}" compose up
