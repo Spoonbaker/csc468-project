@@ -99,6 +99,31 @@
         };
       };
 
+      backend-api = { rustPlatform }: rustPlatform.buildRustPackage {
+        name = "backend-api";
+        meta.mainProgram = "backend-api";
+
+        src = ./backend-api;
+        cargoLock.lockFile = ./backend-api/Cargo.lock;
+      };
+
+      backend-api-container-stream = { lib, dockerTools, backend-api }: dockerTools.streamLayeredImage {
+        name = "backend-api";
+        tag = "latest";
+
+        config = {
+          Entrypoint = [
+            "${lib.getExe backend-api}"
+          ];
+          Env = [
+            "DB_HOST=db"
+          ];
+          ExposedPorts = {
+            "3000/tcp" = { };
+          };
+        };
+      };
+
       raw-report = { runCommand, typst }: runCommand "report-raw.pdf"
         { nativeBuildInputs = [ typst ]; }
         "typst compile ${./report}/main.typ $out";
