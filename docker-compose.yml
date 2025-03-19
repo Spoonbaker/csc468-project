@@ -1,12 +1,17 @@
 services:
   mongo:
-    build: ./mongo
+    image: mongo
     hostname: mongo
     networks:
       - assignment4
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: username
+      MONGO_INITDB_ROOT_PASSWORD: password
   node:
     build: ./node
     networks:
       - assignment4
+    ports:
+      - "80:8080"
 networks:
   assignment4:
