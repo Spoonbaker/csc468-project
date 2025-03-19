@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 
-const MONGO_USERNAME = 'sammy';
-const MONGO_PASSWORD = 'your_password';
-const MONGO_HOSTNAME = '127.0.0.1';
+// Nice, memorable username & password
+const MONGO_USERNAME = 'username';
+const MONGO_PASSWORD = 'password';
+const MONGO_HOSTNAME = 'mongo';
 const MONGO_PORT = '27017';
 const MONGO_DB = 'sharkinfo';
 
