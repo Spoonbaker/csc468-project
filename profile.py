@@ -18,7 +18,9 @@ node = request.RawPC("node")
 # node.disk_image = "urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU22-64-STD"
 node.routable_control_ip = "true"
 
-node.addService(rspec.Execute(shell="/bin/sh", command="sudo apt update; sudo apt install -y docker.io docker-compose neovim curl"))
+node.addService(rspec.Execute(shell="sh", command="sudo bash /local/repository/install_docker.sh"))
+
+node.addService(rspec.Execute(shell="/bin/sh", command="sudo apt update; sudo apt install -y neovim curl"))
 
 node.addService(rspec.Execute(shell="/bin/sh", command="curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sudo sh -s -- install linux --enable-flakes --no-confirm"))
 
