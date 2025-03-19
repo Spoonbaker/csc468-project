@@ -15,6 +15,7 @@ request = portal.context.makeRequestRSpec()
 
 # Life is too short for VMs
 node = request.RawPC("node")
+node.hardware_type = "m510"
 # node.disk_image = "urn:publicid:IDN+emulab.net+image+emulab-ops:UBUNTU22-64-STD"
 node.routable_control_ip = "true"
 
