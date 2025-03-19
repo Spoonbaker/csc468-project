@@ -10,11 +10,6 @@
 #set document(
   title: teamName,
   author: authors,
-  date: datetime( // TODO: update for each deliverable
-    month: 2,
-    day: 9,
-    year: 2025,
-  ),
 )
 
 #set page(paper: "us-letter", margin: 1in)
