@@ -19,6 +19,10 @@ router.get('/sharks',function(req,res){
   res.sendFile(path + 'sharks.html');
 });
 
+app.engine('html', require('ejs').renderFile);
+app.set('view engine', 'html');
+
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path));
 app.use('/', router);
 
