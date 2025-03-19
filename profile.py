@@ -25,6 +25,7 @@ node.addService(rspec.Execute(shell="/bin/sh", command="sudo apt update; sudo ap
 
 node.addService(rspec.Execute(shell="/bin/sh", command="curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sudo sh -s -- install linux --enable-flakes --no-confirm"))
 
+node.addService(rspec.Execute(shell="/bin/sh", command="cd /local/repository && sudo docker compose up -d mongo && sleep 5 && sudo docker compose up -d node"))
 
 # Print the RSpec to the enclosing page.
 portal.context.printRequestRSpec()
