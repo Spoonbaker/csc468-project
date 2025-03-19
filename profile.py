@@ -26,9 +26,10 @@ node.routable_control_ip = "true"
 node.addService(
     rspec.Execute(
         shell="/bin/sh",
-        command="sudo apt update; sudo apt install -y docker.io docker-compose neovim curl",
+        command="sudo apt update; sudo apt install -y neovim curl",
     )
 )
+node.addService(rspec.Execute(shell="sh", command="sudo bash /local/repository/install_docker.sh"))
 
 node.addService(
     rspec.Execute(
