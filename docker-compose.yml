@@ -1,0 +1,12 @@
+services:
+  mongo:
+    build: ./mongo
+    hostname: mongo
+    networks:
+      - assignment4
+  node:
+    build: ./node
+    networks:
+      - assignment4
+networks:
+  assignment4:
