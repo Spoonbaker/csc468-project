@@ -23,9 +23,19 @@ node = request.RawPC("node")
 # Pretty sure we don't need this for `RawPC`s
 node.routable_control_ip = "true"
 
-node.addService(rspec.Execute(shell="/bin/sh", command="sudo apt update; sudo apt install -y docker.io docker-compose neovim curl"))
+node.addService(
+    rspec.Execute(
+        shell="/bin/sh",
+        command="sudo apt update; sudo apt install -y docker.io docker-compose neovim curl",
+    )
+)
 
-node.addService(rspec.Execute(shell="/bin/sh", command="curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sudo sh -s -- install linux --enable-flakes --no-confirm"))
+node.addService(
+    rspec.Execute(
+        shell="/bin/sh",
+        command="curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sudo sh -s -- install linux --enable-flakes --no-confirm",
+    )
+)
 
 
 # Print the RSpec to the enclosing page.
