@@ -124,9 +124,22 @@
         };
       };
 
-      raw-report = { runCommand, typst }: runCommand "report-raw.pdf"
-        { nativeBuildInputs = [ typst ]; }
-        "typst compile ${./report}/main.typ $out";
+      raw-report = { lib, fetchgit, runCommand, typst }:
+        let
+          typst-packages = fetchgit {
+            url = "https://github.com/typst/packages.git";
+            rev = "53bfd4e78a9bc68a7f3bffb1522ae12ef56d781b";
+            sparseCheckout = map (p: "packages/preview/${p}") [
+              "fletcher/0.5.7"
+              "cetz/0.3.4"
+              "oxifmt/0.2.1"
+            ];
+            hash = "sha256-dvl/vmHT6CzowBvNC8rr+TDtll5cKw9fYp1eFqev0XU=";
+          };
+        in
+        runCommand "report-raw.pdf"
+          { env.TYPST_PACKAGE_PATH = "${typst-packages}/packages"; }
+          "${lib.getExe typst} compile ${./report}/main.typ $out";
 
       final-report = { runCommand, qpdf, raw-report }: runCommand "final-report.pdf"
         { nativeBuildInputs = [ qpdf ]; }
