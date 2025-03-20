@@ -1,12 +1,26 @@
 # Aggre-Gator
 
-Aggre-Gator is a cloud-based RSS & Atom feed reader. This was done for Dr. Ngo's CSC 468 - Introduction to Cloud Computing at West Chester University of Pennsylvania. You may want to look at the [report](./report.pdf)
+Aggre-Gator is a cloud-based RSS & Atom feed reader. This is a project for Dr. Ngo's CSC 468 - Introduction to Cloud Computing at West Chester University of Pennsylvania.
 
-## Development Shell
+_You may want to look at_:
 
-To get a dev shell with Nix, run `nix develop`.
+- The [report](./report.pdf), an explanation of Aggre-gator's design and how we built it
+- Our [CI on Garnix](https://garnix.io/repo/Spoonbaker/csc468-project); Garnix runs slightly faster than GitHub actions, and is able to take advantage of Nix's ability to cache builds, which makes CI even faster.
+- Our [CloudLab experiment profile](https://www.cloudlab.us/p/cloud-edu/aggre-gator); currently just a machine with Docker, Docker-Compose, and Nix. Our plan is that deployment will be fully automated after the experiment is created.
 
-## Frontend
+## Development
+
+To get a dev shell with Nix, run `nix develop`. This should get you everything you need. It's like a Python virtualenv for your shell!
+
+Some general tips:
+
+- Commit messages should take the form `part: feature`, such as `frontend: make background neon yellow`
+- Format your code with `nix fmt` (whole project) or `npm run fmt` (frontend only). Your code needs to be formatted to be merged into `main`. If you use VSCode, you should make sure VSCode formats with Prettier, not the builtin HTML formatter.
+- If your commit fixes an issue, you can put `fixes #<issue number>` in the commit description. GitHub will close the issue when your commit is in `main`. A full list of verbs can be found [here](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword)
+- If there's something you need to do later, adding `T` `ODO` or `F` `IXME` (without the spaces!) will ensure it doesn't make it into production.
+- If possible, rebase your feature branches onto main often.
+
+### Frontend
 
 To get started:
 
@@ -14,77 +28,29 @@ To get started:
 cd frontend
 npm i # This installs all required packages locally for development
 npm run dev # This runs a development server with live reloading
+```
+
+Some other commands to be aware of:
+
+```
 npm run check # Run lints to check code for bad things
 npm run fmt # Format code with consistent style
 ```
 
-> [!NOTE]
-> Any/all of this can be changed. This is just a starting point.
-
-The frontend is currently set up to use a build tool called [Vite](https://vite.dev/guide/features.html). This handles compiling Typescript and bundling HTML, CSS, & JS. We also use a CSS processor called [Lightning CSS](https://lightningcss.dev/transpilation.html) and an image processor called [vite-imagetools](https://github.com/JonasKruckenberg/imagetools/tree/main/docs) ([more info](https://github.com/JonasKruckenberg/imagetools/blob/main/docs/directives.md)), both of which should be fairly transparent if unused, but provide some nice features.
-
-Vite also lets us import most web-related files, and any file with `?raw`. (See `node_modules/vite/client.d.ts`) Notably, `import './style.css'` in a JS/TS file will include that CSS in any page that imports the script. Importing an image gives you the path of that image in the final bundle, suitable for use in the `src` attribute.
-
-Generally, you should prefer putting files in `src/` over `public/`, so that Vite will work its magic.
-
-In the future, the backend API base URL should be available in scripts as `import.meta.env.VITE_API_BASE`. An example usage:
+The backend API base URL is available in scripts as `import.meta.env.VITE_API_BASE`. An example usage:
 
 ```js
 const API_BASE = import.meta.env.VITE_API_BASE;
 
-// Do a GET request
-const response = await fetch(`${API_BASE}/endpoint`);
+// Do a GET request to `/debug`
+const response = await fetch(`${API_BASE}/debug`);
+const json = await reponse.json();
 
-// To change the type of request, do:
-const response = await fetch(`${API_BASE}/endpoint`, {
-  /* fields */
-});
-// The fields you can use are documented in:
-// https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
+// For more info see:
+// https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
 ```
 
-## Development
+### Some frontend tips:
 
-### General workflow:
-
-- You have some work item that you are going to work on
-- Implement that on a personal/team branch - `spoon/frontend`
-- Open a PR against `main`
-- In either the commit messages or PR, put `closes #<number>`, see [here](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword)
-- Group discussion - for changes only affecting a specific part, this will be brief/non-existant
-- Revise if needed
-- Merge & delete feature branch - if you follow the above, this will auto-close the work item!
-
-### Issue flow:
-
-- There's a bug, task that needs to be done, or future idea => create an issue!
-  - Create it on the [unclaimed work page](https://github.com/users/Spoonbaker/projects/1/views/8), under the appropriate team
-  - Assign the appropriate labels
-  - (Optional) if this is something that you are going to do yourself, assign yourself now. I (Ellis) like to use issues as a personal todo list this way.
-- The item starts off unassigned, meaning there is not one specific person who is going to do it.
-- When somone is looking to pick up additional work, they assign something for their team to themselves
-- We all move assigned tasks from Todo -> In Progress -> Done
-- 3 days after an item is closed, it is archived to clear up space.
-
-### Things to keep in mind:
-
-- Keep an eye on [open PRs](https://github.com/Spoonbaker/csc468-project/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen)
-  - Review group-wide and team-specific PRs
-  - To leave a comment or suggest changes, click and drag the plus button over the relevant lines
-  - To suggest changes, click the suggest changes button and then edit the text it creates
-  - If you think the PR is ready in its current state, approve the changes
-  - If you think there are issues blocking the merge, note what the issues are and click "request changes"
-- You can ping people on Github. Discord is great for chats, Github is great for asynchronous discussion.
-  - Make sure you check Github notifications
-- Commit names should generally take the form: `<thing you worked on>: <what you did>`, for example: `frontend: init`
-- You should format your code with the formatter
-
-## Features
-
-- Basic functionality (main goal)
-  - Add & remove feeds
-  - Display articles
-  - Periodic refresh - if an article is added & removed between user visits (like lobste.rs or HN), article still appears
-- Extra stuff if we have time
-  - OAuth user accounts - Google, GH
-  - Silly overcomplicated "enterprise-grade" backend
+- Put things in `src/` instead of `public/` whenever possible. This ensures Vite will optimize them.
+- If you `import ./style.css` in a JS/TS file, that CSS will be included on any page the script runs on.
