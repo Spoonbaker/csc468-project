@@ -10,10 +10,6 @@ clean:
     rm report/main.pdf
     fd --no-ignore result --type symlink --exec rm
 
-# Show all T_ODO and F_IXME comments
-show-todos:
-    rg -C 5 "T()ODO|F()IXME"
-
 # Clear up space in podman (may be destructive!)
 container-clean:
     podman container prune --force

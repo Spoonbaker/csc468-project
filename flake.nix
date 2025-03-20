@@ -120,6 +120,17 @@
         touch $out
       '';
 
+      no-unfinished-work = { runCommand, lib, ripgrep, ... }: runCommand "no-unfinished-work" { } ''
+        cd ${./.}
+        if ${lib.getExe ripgrep} --context 1 --pretty "T()ODO|F()IXME"; then
+          # RG succeeds = matches found
+          echo "Found unfinished work!"
+          exit 1
+        else
+          touch $out
+        fi
+      '';
+
       frontend-checks = { frontend, ... }: frontend.overrideAttrs {
         name = "frontend-checks";
         installPhase = "touch $out;";
