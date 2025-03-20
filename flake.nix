@@ -92,13 +92,22 @@
 
     formatters = pkgs:
       let
+        lib = pkgs.lib;
         prettier = (config.formatters pkgs)."*.md";
+        nginx-fmt = "${lib.getExe pkgs.nginx-config-formatter} --indent 2";
       in
       {
         "*.js" = prettier;
         "*.ts" = prettier;
         "*.css" = prettier;
         "*.html" = prettier;
+        "*.py" = "${lib.getExe pkgs.ruff} --no-cache format";
+
+        "*.sql" = "${lib.getExe pkgs.pgformatter} --inplace";
+        "nginx.conf" = nginx-fmt;
+
+        "*.typ" = "${lib.getExe pkgs.typstyle} --inplace";
+        "justfile" = "${lib.getExe pkgs.just} --fmt --unstable --justfile";
       };
   });
 }

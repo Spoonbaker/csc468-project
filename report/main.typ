@@ -75,7 +75,8 @@
       align(center + horizon)[
         #line(length: 90%, stroke: 0.25pt)
       ],
-      width: 1fr, height: 0.6em
+      width: 1fr,
+      height: 0.6em,
     ) // TODO: do we want the line?
 
     emph[CSC 468]
@@ -88,9 +89,9 @@
   #figure(
     image(
       "elliance-power-of-rss.gif",
-      width: 50%
+      width: 50%,
     ),
-    caption: [The benefits of RSS]
+    caption: [The benefits of RSS],
   ) <elliance>
 ]
 
@@ -126,7 +127,7 @@ early, there are some additional features on our wishlist, time permitting:
   - Fully automated - instantiating CloudLab profile deploys everything
 - A second sillier, overcomplicated deployment strategy
 
-#if not rssFig {pagebreak()}
+#if not rssFig { pagebreak() }
 
 = Chapter 2
 In terms of implementing our vision, we decided to split the project into
@@ -153,7 +154,7 @@ and minifies all assets for us. We also use Lightning CSS, a CSS processor and
 
 Instead of plain JavaScript, we opted to use Typescript for better error
 checking and IDE integration. We also have ESLint set up to catch errors and
-mistakes that the Typescript compiler might miss.  Given that we don't need
+mistakes that the Typescript compiler might miss. Given that we don't need
 to manage any client-side UI state, we didn't use a Javascript framework. For
 styling, we are using Tailwind CSS with WCU theme colors.
 
@@ -182,7 +183,7 @@ separately from other parts of the backend.
 
 #figure(
   image("diagram.svg"),
-  caption: [Design of #teamName]
+  caption: [Design of #teamName],
 ) <design>
 
 == Team Organization and Management
@@ -209,4 +210,4 @@ group to work efficiently on several things at once.
 // Build tools
 // GH repo
 // GH project
-// 
+//

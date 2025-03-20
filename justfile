@@ -1,5 +1,5 @@
 _default:
-    @just --list --unsorted --justfile "{{justfile()}}"
+    @just --list --unsorted --justfile "{{ justfile() }}"
 
 # Combine Typst report with resumes
 report:
@@ -21,4 +21,3 @@ frontend-run:
         -p 5080:80 \
         -p 5443:443 \
         frontend-nginx
-    
