@@ -18,10 +18,6 @@ clean:
     rm report/main.pdf
     fd --no-ignore result --type symlink --exec rm
 
-# Show all T_ODO and F_IXME comments (without the underscores)
-show-todos:
-    rg -C 5 "T()ODO|F()IXME"
-
 # Clear up space in podman/docker (may be destructive!)
 containers-clean:
     {{ ENG }} container prune --force
