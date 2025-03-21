@@ -1,6 +1,63 @@
 // @ts-nocheck
+// Need to use proper type assertions or checks for all DOM queries before
+// removing @ts-nocheck
 // I simply extracted this from the body of the page it was on. You will need to
 // combine related functionality into modules, and fix the Typescript errors.
+
+// Mock feeds data
+const mockFeeds = [
+  {
+    id: 1,
+    name: "TechCrunch",
+    url: "https://techcrunch.com/feed/",
+    category: "technology",
+    favicon:
+      "https://techcrunch.com/wp-content/uploads/2015/02/cropped-cropped-favicon-gradient.png?w=32",
+    articleCount: 156,
+    unreadCount: 23,
+    lastUpdated: "2025-02-26T14:30:00Z",
+  },
+  {
+    id: 2,
+    name: "NASA Science",
+    url: "https://science.nasa.gov/feed/",
+    category: "science",
+    favicon: "https://science.nasa.gov/wp-content/themes/science-2020/assets/img/favicon-32x32.png",
+    articleCount: 87,
+    unreadCount: 12,
+    lastUpdated: "2025-02-25T10:15:00Z",
+  },
+  {
+    id: 3,
+    name: "Harvard Business Review",
+    url: "https://hbr.org/feed",
+    category: "business",
+    favicon: "https://hbr.org/resources/images/favicon.ico",
+    articleCount: 203,
+    unreadCount: 45,
+    lastUpdated: "2025-02-26T08:45:00Z",
+  },
+  {
+    id: 4,
+    name: "Medical News Today",
+    url: "https://www.medicalnewstoday.com/feed",
+    category: "health",
+    favicon: "https://www.medicalnewstoday.com/favicon-32x32.png",
+    articleCount: 134,
+    unreadCount: 18,
+    lastUpdated: "2025-02-24T16:20:00Z",
+  },
+  {
+    id: 5,
+    name: "ESPN",
+    url: "https://www.espn.com/espn/rss/news",
+    category: "sports",
+    favicon: "https://a.espncdn.com/favicon.ico",
+    articleCount: 178,
+    unreadCount: 31,
+    lastUpdated: "2025-02-26T12:10:00Z",
+  },
+];
 
 // Mock article data
 let article = {
@@ -21,6 +78,7 @@ let article = {
     favicon: "https://example.com/favicon.ico",
   },
   isBookmarked: false,
+  feedId: 1,
 };
 
 // Add mockArticles data
@@ -33,6 +91,7 @@ const mockArticles = [
     date: "2025-02-26",
     isUnread: true,
     isBookmarked: false,
+    feedId: 1,
   },
   {
     id: 2,
@@ -42,6 +101,7 @@ const mockArticles = [
     date: "2025-02-25",
     isUnread: true,
     isBookmarked: true,
+    feedId: 3,
   },
   {
     id: 3,
@@ -51,6 +111,7 @@ const mockArticles = [
     date: "2025-02-24",
     isUnread: false,
     isBookmarked: false,
+    feedId: 1,
   },
   {
     id: 4,
@@ -60,6 +121,7 @@ const mockArticles = [
     date: "2025-02-23",
     isUnread: true,
     isBookmarked: false,
+    feedId: 2,
   },
   {
     id: 5,
@@ -69,6 +131,7 @@ const mockArticles = [
     date: "2025-02-22",
     isUnread: false,
     isBookmarked: true,
+    feedId: 2,
   },
   {
     id: 6,
@@ -78,6 +141,7 @@ const mockArticles = [
     date: "2025-02-21",
     isUnread: true,
     isBookmarked: false,
+    feedId: 3,
   },
   {
     id: 7,
@@ -87,6 +151,7 @@ const mockArticles = [
     date: "2025-02-20",
     isUnread: true,
     isBookmarked: false,
+    feedId: 1,
   },
   {
     id: 8,
@@ -96,6 +161,7 @@ const mockArticles = [
     date: "2025-02-19",
     isUnread: false,
     isBookmarked: true,
+    feedId: 2,
   },
   {
     id: 9,
@@ -105,6 +171,7 @@ const mockArticles = [
     date: "2025-02-18",
     isUnread: true,
     isBookmarked: false,
+    feedId: 3,
   },
   // ... 其他文章数据
 ];
@@ -115,6 +182,12 @@ function getArticleIdFromUrl() {
   return parseInt(urlParams.get("id")) || 1; // Default to ID 1
 }
 
+// Get feedName
+function getFeedName(feedId) {
+  const feed = mockFeeds.find(feed => feed.id === feedId);
+  return feed ? feed.name : "Unknown Feed";
+}
+
 // Load article content
 function loadArticle() {
   const articleId = getArticleIdFromUrl();
@@ -122,8 +195,10 @@ function loadArticle() {
 
   document.title = `${articleData.title} - Aggre-Gator RSS`;
   document.getElementById("articleTitle").textContent = articleData.title;
-  document.getElementById("sourceTitle").textContent =
-    articleData.source?.title || "Medical Technology Today";
+
+  const feedName = getFeedName(articleData.feedId);
+  document.getElementById("sourceTitle").textContent = feedName;
+
   document.getElementById("sourceFavicon").src =
     articleData.source?.favicon || "https://example.com/favicon.ico";
   document.getElementById("articleDate").textContent = articleData.date;
@@ -167,8 +242,12 @@ function toggleBookmark() {
 // Update bookmark button
 function updateBookmarkButton() {
   const btn = document.getElementById("bookmarkBtn");
-  const icon = btn.querySelector("i");
-  icon.className = article.isBookmarked ? "ri-bookmark-fill" : "ri-bookmark-line";
+  if (btn) {
+    const icon = btn.querySelector("i");
+    if (icon) {
+      icon.className = article.isBookmarked ? "ri-bookmark-fill" : "ri-bookmark-line";
+    }
+  }
 }
 
 // Share article
@@ -200,54 +279,51 @@ document.getElementById("shareBtn").addEventListener("click", shareArticle);
 
 // Add related articles rendering
 function renderRelatedArticles() {
-  const relatedArticles = [
-    {
-      id: 2,
-      title: "AI in Healthcare: A New Era",
-      date: "2025-02-25",
-    },
-    {
-      id: 3,
-      title: "Machine Learning Revolutionizes Disease Detection",
-      date: "2025-02-24",
-    },
-    // Add more related articles as needed
-  ];
-
+  const currentArticleId = getArticleIdFromUrl();
+  const currentArticle = mockArticles.find(a => a.id === currentArticleId);
+  
+  // Get articles from the same feed, excluding the current article
+  let relatedArticles = [];
+  
+  if (currentArticle && currentArticle.feedId) {
+    relatedArticles = mockArticles
+      .filter(a => a.feedId === currentArticle.feedId && a.id !== currentArticle.id)
+      .slice(0, 2);
+  }
+  
   const relatedArticlesList = document.getElementById("relatedArticles");
   if (relatedArticlesList) {
     while (relatedArticlesList.firstChild) {
       relatedArticlesList.removeChild(relatedArticlesList.firstChild);
     }
-
+    
     // Create and append each related article
     relatedArticles.forEach(article => {
       // Create main container
       const articleDiv = document.createElement('div');
       articleDiv.className = 'flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer';
-    
+      
       // Event listener
       articleDiv.addEventListener('click', () => {
-      readArticle(article.id);
+        readArticle(article.id);
       });
-    
+      
       const contentDiv = document.createElement('div');
-    
-      // Title elem
+      
+      // Title element
       const titleElem = document.createElement('h4');
       titleElem.className = 'text-sm font-medium text-gray-900';
       titleElem.textContent = article.title;
-    
-      // Date elem
+      
+      // Date element
       const dateElem = document.createElement('time');
       dateElem.className = 'text-xs text-gray-500';
       dateElem.textContent = article.date;
-    
+      
       // Build DOM structure
       contentDiv.appendChild(titleElem);
       contentDiv.appendChild(dateElem);
       articleDiv.appendChild(contentDiv);
-    
       relatedArticlesList.appendChild(articleDiv);
     });
   }
