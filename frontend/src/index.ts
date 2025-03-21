@@ -1,11 +1,17 @@
 // @ts-nocheck
+// Need to use proper type assertions or checks for all DOM queries before
+// removing @ts-nocheck
 // I simply extracted this from the body of the page it was on. You will need to
 // combine related functionality into modules, and fix the Typescript errors.
 
 import { stat } from "node:fs/promises";
+import { Article } from './models/article';
+import { Feed } from './models/feed';
+import { mock } from "node:test";
 
 let currentUnreadPage = 1;
 const unreadItemsPerPage = 5;
+let currentFeedId: number | null = null;
 function updateNotificationBadge() {
   const unreadCount = mockArticles.filter((article) => article.isUnread).length;
   document.querySelector(".notification-badge").textContent = unreadCount;
@@ -95,6 +101,7 @@ const mockArticles = [
     date: "2025-02-26",
     isUnread: true,
     isBookmarked: false,
+    feedId: 1,
   },
   {
     id: 2,
@@ -103,7 +110,8 @@ const mockArticles = [
       "Cities worldwide are adopting green building standards and integrating smart transportation systems for a sustainable future...",
     date: "2025-02-25",
     isUnread: true,
-    isBookmarked: false,
+    isBookmarked: true,
+    feedId: 3,
   },
   {
     id: 3,
@@ -112,7 +120,8 @@ const mockArticles = [
       "IBM's latest quantum processor breaks the 100-qubit barrier, opening new possibilities for complex computational problems...",
     date: "2025-02-24",
     isUnread: false,
-    isBookmarked: true,
+    isBookmarked: false,
+    feedId: 1,
   },
   {
     id: 4,
@@ -122,6 +131,7 @@ const mockArticles = [
     date: "2025-02-23",
     isUnread: true,
     isBookmarked: false,
+    feedId: 2,
   },
   {
     id: 5,
@@ -131,6 +141,7 @@ const mockArticles = [
     date: "2025-02-22",
     isUnread: false,
     isBookmarked: true,
+    feedId: 2,
   },
   {
     id: 6,
@@ -140,6 +151,7 @@ const mockArticles = [
     date: "2025-02-21",
     isUnread: true,
     isBookmarked: false,
+    feedId: 3,
   },
   {
     id: 7,
@@ -149,6 +161,7 @@ const mockArticles = [
     date: "2025-02-20",
     isUnread: true,
     isBookmarked: false,
+    feedId: 1,
   },
   {
     id: 8,
@@ -158,6 +171,7 @@ const mockArticles = [
     date: "2025-02-19",
     isUnread: false,
     isBookmarked: true,
+    feedId: 2,
   },
   {
     id: 9,
@@ -167,6 +181,7 @@ const mockArticles = [
     date: "2025-02-18",
     isUnread: true,
     isBookmarked: false,
+    feedId: 3,
   },
 ];
 let currentDeleteId = null;
@@ -219,7 +234,14 @@ const handleSearch = debounce((searchTerm) => {
     return;
   }
 
-  const filteredArticles = mockArticles.filter(
+  // If feed selected, filter only that feed
+  let articlesSearched = mockArticles;
+  if (currentFeedId !== null) {
+    articlesSearched = mockArticles.filter(article =>
+      article.feedId === currentFeedId);
+  }
+
+  const filteredArticles = articlesSearched.filter(
     (article) =>
       article.title.toLowerCase().includes(searchTerm) ||
       article.summary.toLowerCase().includes(searchTerm),
@@ -368,9 +390,17 @@ async function renderArticles() {
       articleList.removeChild(articleList.firstChild);
     }
 
+    // Filtering by feedId if selected
+    let articlesShowing = mockArticles;
+    if (currentFeedId !== null) {
+      articlesShowing = mockArticles.filter(article =>
+        article.feedId === currentFeedId);
+    }
+
+
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const currentArticles = mockArticles.slice(startIndex, endIndex);
+    const currentArticles = articlesShowing.slice(startIndex, endIndex);
 
     currentArticles.forEach(article => {
       const articleCard = document.createElement('div');
@@ -498,6 +528,13 @@ function closeLoginModal() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Check URL for feed parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const feedIdParam = urlParams.get('feedId');
+  if (feedIdParam) {
+    currentFeedId = parseInt(feedIdParam, 10);
+  }
+
   const loginButton = document.getElementById("loginButton");
   const loginModal = document.getElementById("loginModal");
   const closeButton = document.getElementById("closeLogin");

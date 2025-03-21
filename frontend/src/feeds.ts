@@ -1,4 +1,6 @@
 // @ts-nocheck
+// Need to use proper type assertions or checks for all DOM queries before
+// removing @ts-nocheck
 // I simply extracted this from the body of the page it was on. You will need to
 // combine related functionality into modules, and fix the Typescript errors.
 
@@ -356,12 +358,7 @@ async function confirmDeleteFeed() {
 
 // Show feed articles
 function showFeedArticles(id) {
-  // In a real app, this would navigate to a feed-specific page
-  // For now, we'll just show a toast
-  const feed = mockFeeds.find((feed) => feed.id === id);
-  if (feed) {
-    showToast(`Viewing articles from ${feed.name}`);
-  }
+  window.location.href = `index.html?feedId=${id}`;
 }
 
 // Show toast notification
