@@ -116,9 +116,10 @@
           ];
           Env = [
             "DB_HOST=db"
+            "LISTEN_PORT=80"
           ];
           ExposedPorts = {
-            "3000/tcp" = { };
+            "80/tcp" = { };
           };
         };
       };

@@ -11,6 +11,13 @@ async fn main() -> anyhow::Result<()> {
     // Use localhost in dev. The container defaults this to `db`
     let host = env::var("DB_HOST").unwrap_or_else(|_| "localhost".to_string());
 
+    // 3000 for dev, container defaults to 80
+    let listen_port = env::var_os("LISTEN_PORT")
+        .unwrap_or_else(|| "3000".into())
+        .to_str()
+        .and_then(|x| x.parse::<u16>().ok())
+        .context("While parsing $LISTEN_PORT")?;
+
     let (client, connection) = tokio_postgres::Config::new()
         .application_name("backend-api")
         .user("nobody")
@@ -34,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new().nest("/api", api_routes);
 
-    let listener = tokio::net::TcpListener::bind(("0.0.0.0", 3000))
+    let listener = tokio::net::TcpListener::bind(("0.0.0.0", listen_port))
         .await
         .context("While binding to the port/address")?;
     axum::serve(listener, app).await.context("While serving")
