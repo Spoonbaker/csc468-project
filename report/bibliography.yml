@@ -1,0 +1,141 @@
+repro-builds:
+  type: Web
+  title: Reproducible Builds Website
+  author: "Reproducible Builds"
+  url: https://reproducible-builds.org/
+
+nix:
+  type: Thesis
+  title: The purely functional software deployment model
+  author: "Dolstra, Eelco"
+  url: https://edolstra.github.io/pubs/phd-thesis.pdf
+  genre: Doctoral dissertation
+  date: 2006
+  publisher: Utrecht University
+  serial-number: ISBN 90-393-4130-3
+
+nixpkgs:
+  type: Repository
+  title: NixOS/nixpkgs
+  author:
+    - "Dolstra, Eelco"
+    - "Nixpkgs/NixOS contributors"
+  url: https://github.com/NixOS/nixpkgs
+
+repology-repos:
+  type: Web
+  title: Repology - Repositories Graphs
+  author: "Marakasov, Dmitry"
+  url: https://repology.org/repositories/graphs
+
+our-repo:
+  type: Repository
+  title: Aggre-gator Source Code Repository
+  author:
+    - "Johannesen, Gus"
+    - "Ross, Chris"
+    - "Weaver-Kreider, Ellis"
+    - "Wei, Yanxi"
+    - "Weaver-Kreider, Ellis"
+  url: https://github.com/Spoonbaker/csc468-project
+
+typst:
+  type: Web
+  title: Typst
+  author:
+    - "Haug, Martin"
+    - "Mädje, Laurenz"
+  url: https://typst.app
+
+nginx:
+  type: Web
+  title: Nginx
+  author:
+    - "Sysoev, Igor"
+    - name: "Nginx, Inc."
+  url: https://nginx.org/en/
+
+vite:
+  type: Web
+  title: "Vite: Next Generation Frontend Tooling"
+  author:
+    - name: "ZoidZero, Inc."
+    - "Vite contributors"
+  url: https://vite.dev/
+
+typescript:
+  type: Web
+  title: "TypeScript: JavaScript with Syntax for Types"
+  author:
+    - Microsoft
+    - "TypeScript contributors"
+  url: https://www.typescriptlang.org/
+
+eslint:
+  type: Web
+  title: "ESLint: Find and fix problems in your JavaScript code"
+  author:
+    - "OpenJS Foundation"
+    - "ESLint contributors"
+  url: https://eslint.org/
+
+tailwind:
+  type: Web
+  title: "Tailwind CSS: Rapidly build modern websites without ever leaving your HTML"
+  author:
+    name: "Tailwind Labs, Inc."
+  url: https://tailwindcss.com/
+
+nginx-upstream:
+  type: Web
+  title: "Nginx Documentation: Module ngx_http_upstream_module"
+  author:
+    - "Sysoev, Igor"
+    - name: "Nginx, Inc."
+  url: https://nginx.org/en/docs/http/ngx_http_upstream_module.html#upstream
+
+docker:
+  type: Web
+  title: "Docker: Accelerated Container Application Development"
+  author:
+    name: "Docker, Inc."
+  url: https://www.docker.com/
+
+podman:
+  type: Web
+  title: Podman
+  author:
+    - name: "Red Hat, Inc."
+    - Podman contributors
+  url: https://podman.io/
+
+rust:
+  type: Web
+  title: "Rust: Empowering everyone to build reliable and efficient software."
+  author: The Rust Project Contributors
+  url: https://www.rust-lang.org/
+
+mongodb:
+  type: Web
+  title: MongoDB
+  author:
+    name: "MongoDB, Inc."
+  url: https://www.mongodb.com/
+
+postgres:
+  type: Web
+  title: PostgreSQL Database Management System
+  author: PostgreSQL Global Development Group
+  url: https://www.postgresql.org/
+
+postgres-text-type:
+  type: Web
+  title: "PostgreSQL Documentation: Character Types"
+  author: PostgreSQL Global Development Group
+  url: https://www.postgresql.org/docs/current/datatype-character.html
+
+postgres-jsonb-type:
+  type: Web
+  title: "PostgreSQL Documentation: JSON Types"
+  author: PostgreSQL Global Development Group
+  url: https://www.postgresql.org/docs/current/datatype-json.html
