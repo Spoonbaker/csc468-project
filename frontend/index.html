@@ -7,6 +7,15 @@
   <title>Aggre-Gator RSS</title>
   <link href="/src/style.css" rel="stylesheet" />
   <script type="module" src="/src/index.ts"></script>
+  <script type="module">
+    const API_BASE = import.meta.env.VITE_API_BASE;
+
+    // Do a GET request to `/debug`
+    const response = await fetch(`${API_BASE}/debug`);
+    const json = await response.json();
+
+    alert(`Postgres Version:\n\n${json.db_version}`)
+  </script>
 </head>
 
 <body class="bg-gray-50 min-h-screen">

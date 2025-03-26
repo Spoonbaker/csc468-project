@@ -27,6 +27,7 @@ export default {
     rollupOptions: {
       input,
     },
+    target: 'esnext',
   },
   plugins: [
     imagetools({
