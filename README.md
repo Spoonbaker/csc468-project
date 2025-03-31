@@ -5,6 +5,7 @@ Aggre-Gator is a cloud-based RSS & Atom feed reader. This is a project for Dr. N
 _You may want to look at_:
 
 - The [report](./report.pdf), an explanation of Aggre-gator's design and how we built it
+- The [slide for our midterm presentation](./midterm-slide.pdf)
 - Our [CI on Garnix](https://garnix.io/repo/Spoonbaker/csc468-project); Garnix runs slightly faster than GitHub actions, and is able to take advantage of Nix's ability to cache builds, which makes CI even faster.
 - Our [CloudLab experiment profile](https://www.cloudlab.us/p/cloud-edu/aggre-gator); currently just a machine with Docker, Docker-Compose, and Nix. Our plan is that deployment will be fully automated after the experiment is created.
 
