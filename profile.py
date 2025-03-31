@@ -34,7 +34,7 @@ node.addService(rspec.Execute(shell="sh", command="sudo bash /local/repository/i
 node.addService(
     rspec.Execute(
         shell="/bin/sh",
-        command="curl --proto '=https' --tlsv1.2 -sSf -L https://install.lix.systems/lix | sudo sh -s -- install linux --enable-flakes --no-confirm",
+        command="curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sudo sh -s -- install linux --no-confirm",
     )
 )
 
