@@ -1,20 +1,17 @@
-// @ts-nocheck
 // Need to use proper type assertions or checks for all DOM queries before
 // removing @ts-nocheck
 // I simply extracted this from the body of the page it was on. You will need to
 // combine related functionality into modules, and fix the Typescript errors.
 
-import { stat } from "node:fs/promises";
-import { Article } from './models/article';
-import { Feed } from './models/feed';
-import { mock } from "node:test";
+import { Article } from "./models/article";
 
 let currentUnreadPage = 1;
 const unreadItemsPerPage = 5;
 let currentFeedId: number | null = null;
 function updateNotificationBadge() {
   const unreadCount = mockArticles.filter((article) => article.isUnread).length;
-  document.querySelector(".notification-badge").textContent = unreadCount;
+  const notif = document.querySelector(".notification-badge") as HTMLElement;
+  notif.textContent = unreadCount.toString();
 }
 function renderUnreadList() {
   const unreadList = document.getElementById("unreadList");
@@ -24,29 +21,31 @@ function renderUnreadList() {
   const startIndex = (currentUnreadPage - 1) * unreadItemsPerPage;
   const endIndex = startIndex + unreadItemsPerPage;
   const currentUnreadArticles = unreadArticles.slice(startIndex, endIndex);
-
-  while (unreadList.firstChild) {
-    unreadList?.removeChild(unreadList.firstChild);
+  if (unreadList) {
+    while (unreadList.firstChild) {
+      unreadList?.removeChild(unreadList.firstChild);
+    }
   }
 
-  currentUnreadArticles.forEach(article => {
-    const unreadArticleContainer = document.createElement('div');
-    unreadArticleContainer.className = 'flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer';
-    unreadArticleContainer.addEventListener('click', () => {
+  currentUnreadArticles.forEach((article) => {
+    const unreadArticleContainer = document.createElement("div");
+    unreadArticleContainer.className =
+      "flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer";
+    unreadArticleContainer.addEventListener("click", () => {
       readArticle(article.id);
     });
 
-    const circle = document.createElement('div');
-    circle.className = 'w-2 h-2 mt-2 rounded-full bg-primary';
+    const circle = document.createElement("div");
+    circle.className = "w-2 h-2 mt-2 rounded-full bg-primary";
 
-    const detailsContainer = document.createElement('div');
+    const detailsContainer = document.createElement("div");
 
-    const unreadArticleTitle = document.createElement('h4');
-    unreadArticleTitle.className = 'text-sm font-medium text-gray-900';
+    const unreadArticleTitle = document.createElement("h4");
+    unreadArticleTitle.className = "text-sm font-medium text-gray-900";
     unreadArticleTitle.textContent = article.title;
 
-    const unreadArticleDate = document.createElement('time');
-    unreadArticleDate.className = 'text-xs text-gray-500';
+    const unreadArticleDate = document.createElement("time");
+    unreadArticleDate.className = "text-xs text-gray-500";
     unreadArticleDate.textContent = article.date;
 
     detailsContainer.appendChild(unreadArticleTitle);
@@ -58,17 +57,30 @@ function renderUnreadList() {
     unreadList?.appendChild(unreadArticleContainer);
   });
 
-  document.getElementById("unreadPageInfo").textContent =
-    `${currentUnreadPage}/${totalUnreadPages}`;
-  document.getElementById("unreadPrevBtn").disabled = currentUnreadPage === 1;
-  document.getElementById("unreadNextBtn").disabled = currentUnreadPage === totalUnreadPages;
+  const pageInfoElement = document.getElementById("unreadPageInfo") as HTMLElement;
+  const prevBtn = document.getElementById("unreadPrevBtn") as HTMLButtonElement;
+  const nextBtn = document.getElementById("unreadNextBtn") as HTMLButtonElement;
+
+  if (pageInfoElement) {
+    pageInfoElement.textContent = `${currentUnreadPage}/${totalUnreadPages}`;
+  }
+
+  if (prevBtn) {
+    prevBtn.disabled = currentUnreadPage === 1;
+  }
+
+  if (nextBtn) {
+    nextBtn.disabled = currentUnreadPage === totalUnreadPages;
+  }
 }
+
 function prevUnreadPage() {
   if (currentUnreadPage > 1) {
     currentUnreadPage--;
     renderUnreadList();
   }
 }
+
 function nextUnreadPage() {
   const unreadArticles = mockArticles.filter((article) => article.isUnread);
   const totalUnreadPages = Math.ceil(unreadArticles.length / unreadItemsPerPage);
@@ -77,21 +89,23 @@ function nextUnreadPage() {
     renderUnreadList();
   }
 }
-function readArticle(id) {
+
+function readArticle(id: number) {
   const article = mockArticles.find((article) => article.id === id);
   if (article && article.isUnread) {
     article.isUnread = false;
     updateNotificationBadge();
     renderUnreadList();
-    const searchInput = document.getElementById("searchInput");
+    const searchInput = document.getElementById("searchInput") as HTMLInputElement;
     if (searchInput.value.trim()) {
       handleSearch(searchInput.value.toLowerCase());
     } else {
-      renderArticles();
+      loadAndDisplayArticles();
     }
   }
   window.location.href = `article-detail.html?id=${id}`;
 }
+
 const mockArticles = [
   {
     id: 1,
@@ -184,14 +198,14 @@ const mockArticles = [
     feedId: 3,
   },
 ];
-let currentDeleteId = null;
+let currentDeleteId: number | null = null;
 let currentPage = 1;
 const itemsPerPage = 6;
 const totalPages = Math.ceil(mockArticles.length / itemsPerPage);
 function updatePaginationButtons() {
-  const prevButton = document.getElementById("prevPage");
-  const nextButton = document.getElementById("nextPage");
-  const pageInfo = document.getElementById("pageInfo");
+  const prevButton = document.getElementById("prevPage") as HTMLButtonElement;
+  const nextButton = document.getElementById("nextPage") as HTMLButtonElement;
+  const pageInfo = document.getElementById("pageInfo") as HTMLElement;
   prevButton.disabled = currentPage === 1;
   nextButton.disabled = currentPage === totalPages;
   pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
@@ -199,324 +213,264 @@ function updatePaginationButtons() {
 function prevPage() {
   if (currentPage > 1) {
     currentPage--;
-    renderArticles();
-    updatePaginationButtons();
+    loadAndDisplayArticles();
   }
 }
 function nextPage() {
   if (currentPage < totalPages) {
     currentPage++;
-    renderArticles();
-    updatePaginationButtons();
+    loadAndDisplayArticles();
   }
 }
 function showLoading() {
-  document.getElementById("loadingIndicator").style.display = "flex";
+  const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement;
+  loadingIndicator.style.display = "flex";
 }
 
 function hideLoading() {
-  document.getElementById("loadingIndicator").style.display = "none";
+  const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement;
+  loadingIndicator.style.display = "none";
 }
 
 // Debounce function implementation
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
+function debounce(func: Function, wait: number) {
+  let timeout: number | undefined;
+  return function (...args: any[]) {
     clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
+    timeout = setTimeout(() => func(...args), wait) as unknown as number;
   };
 }
 
 // Search handler function
-const handleSearch = debounce((searchTerm) => {
+const handleSearch = debounce((searchTerm: string) => {
   if (!searchTerm.trim()) {
-    renderArticles();
+    loadAndDisplayArticles();
     return;
   }
 
   // If feed selected, filter only that feed
-  let articlesSearched = mockArticles;
+  let articlesToSearch = mockArticles;
   if (currentFeedId !== null) {
-    articlesSearched = mockArticles.filter(article =>
-      article.feedId === currentFeedId);
+    articlesToSearch = mockArticles.filter((article) => article.feedId === currentFeedId);
   }
 
-  const filteredArticles = articlesSearched.filter(
+  const filteredArticles = articlesToSearch.filter(
     (article) =>
       article.title.toLowerCase().includes(searchTerm) ||
       article.summary.toLowerCase().includes(searchTerm),
   );
 
-  renderFilteredArticles(filteredArticles);
+  const articleList = document.getElementById("articleList") as HTMLElement;
+  renderArticles(filteredArticles, articleList);
 }, 300);
 
-// Render filtered article list
-function renderFilteredArticles(articles) {
-  const articleList = document.getElementById("articleList");
-
-  while (articleList.firstChild) {
-    articleList.removeChild(articleList.firstChild);
-  }
-
-  if (articles.length === 0) {
-    const noArticlesFoundContainer = document.createElement('div');
-    noArticlesFoundContainer.className = 'col-span-full text-center py-8';
-
-    const searchIcon = document.createElement('i');
-    searchIcon.className = 'ri-search-line text-4xl text-gray-400 mb-2';
-
-    const noArticlesFoundMessage = document.createElement('p');
-    noArticlesFoundMessage.className = 'text-gray-500';
-    noArticlesFoundMessage.textContent = 'No articles found';
-
-    noArticlesFoundContainer.appendChild(searchIcon);
-    noArticlesFoundContainer.appendChild(noArticlesFoundMessage);
-    articleList?.appendChild(noArticlesFoundContainer);
-
-    return;
-  }
-
-  articles.forEach(article => {
-    const articleCard = document.createElement('div');
-    articleCard.className = `bg-white rounded-lg shadow-sm overflow-hidden ${article.isUnread ? "ring-1 ring-primary/10" : ""}`;
-
-    const articleContainer = document.createElement('div');
-    articleContainer.className = 'p-6';
-
-    const titleDeleteButton = document.createElement('div');
-    titleDeleteButton.className = 'flex justify-between items-start mb-4';
-
-    const title = document.createElement('h2');
-    title.className = `text-lg ${article.isUnread ? "font-bold" : "font-medium"} text-gray-900`;
-    title.textContent = article.title;
-
-    const deleteIcon = document.createElement('i');
-    deleteIcon.className = 'ri-delete-bin-line';
-
-    const deleteButton = document.createElement('button');
-    deleteButton.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500';
-    deleteButton.appendChild(deleteIcon);
-    deleteButton.addEventListener('click', () => {
-      showDeleteModal(article.id);
-    });
-
-    titleDeleteButton.appendChild(title);
-    titleDeleteButton.appendChild(deleteButton);
-
-    // Summary
-    const summary = document.createElement('p');
-    summary.className = 'text-gray-600 mb-4 text-sm';
-    summary.textContent = article.summary;
-
-    // Stats 
-    const statsContainer = document.createElement('div');
-    statsContainer.className = 'flex items-center justify-between';
-
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'flex items-center gap-3';
-
-    const bookmarkIcon = document.createElement('i');
-    bookmarkIcon.className = `ri-bookmark-${article.isBookmarked ? "fill" : "line"}`;
-
-    const shareIcon = document.createElement('i');
-    shareIcon.className = 'ri-share-line';
-
-    const bookmarkButton = document.createElement('button');
-    bookmarkButton.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary';
-    bookmarkButton.appendChild(bookmarkIcon);
-    bookmarkButton.addEventListener('click', () => {
-      toggleBookmark(article.id);
-    });
-
-    const shareButton = document.createElement('button');
-    shareButton.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary';
-    shareButton.appendChild(shareIcon);
-    shareButton.addEventListener('click', () => {
-      shareArticle(article.id);
-    });
-
-    const date = document.createElement('time');
-    date.className = 'text-sm text-gray-500';
-    date.textContent = article.date;
-
-    buttonContainer.appendChild(bookmarkButton);
-    buttonContainer.appendChild(shareButton);
-    statsContainer.appendChild(buttonContainer)
-    statsContainer.appendChild(date);
-
-    const readMoreContainer = document.createElement('div');
-    readMoreContainer.className = 'px-6 py-4 bg-gray-50 border-t';
-
-    const readMoreButton = document.createElement('button');
-    readMoreButton.className = 'w-full py-2 bg-primary text-white !rounded-button hover:bg-secondary';
-    readMoreButton.textContent = 'Read More';
-    readMoreButton.addEventListener('click', () => {
-      readArticle(article.id);
-    });
-
-    readMoreContainer.appendChild(readMoreButton);
-
-    articleContainer.appendChild(titleDeleteButton);
-    articleContainer.appendChild(summary);
-    articleContainer.appendChild(statsContainer);
-    articleCard.appendChild(articleContainer);
-    articleCard.appendChild(readMoreContainer);
-    articleList?.appendChild(articleCard);
-  });
-}
-
 // Search input listener
-document.getElementById("searchInput").addEventListener("input", (e) => {
-  const searchTerm = e.target.value.toLowerCase();
+const searchInput = document.getElementById("searchInput") as HTMLInputElement;
+searchInput.addEventListener("input", (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  const searchTerm = target.value.toLowerCase();
+  const articleList = document.getElementById("articleList") as HTMLElement;
   if (searchTerm.trim() === "") {
-    document.getElementById("articleList").classList.remove("searching");
+    articleList.classList.remove("searching");
   } else {
-    document.getElementById("articleList").classList.add("searching");
+    articleList.classList.add("searching");
   }
   handleSearch(searchTerm);
 });
 
+function createElement<T extends HTMLElement>(
+  tag: string,
+  className: string = "",
+  textContent: string = "",
+): T {
+  const element = document.createElement(tag) as T;
+  if (className) element.className = className;
+  if (textContent) element.textContent = textContent;
+  return element;
+}
+
+// Function to render individual article cards
+function createArticleCard(article: Article): HTMLElement {
+  const card = createElement(
+    "div",
+    `article-card bg-white rounded-lg shadow-sm overflow-hidden ${article.isUnread ? "ring-1 ring-primary/10" : ""}`,
+  );
+  card.dataset.articleId = article.id.toString(); // Fixed typo from articleID to articleId
+
+  // Main container
+  const content = createElement("div", "p-6");
+
+  // Header container
+  const header = createElement("div", "flex justify-between items-start mb-4");
+  const title = createElement(
+    "h2",
+    `text-lg ${article.isUnread ? "font-bold" : "font-medium"} text-gray-900`,
+    article.title,
+  );
+  const deleteBtn = createElement(
+    "button",
+    "delete-btn w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500",
+  );
+  const deleteIcon = createElement("i", "ri-delete-bin-line");
+  deleteBtn.appendChild(deleteIcon);
+
+  header.appendChild(title);
+  header.appendChild(deleteBtn);
+
+  // Summary
+  const summary = createElement("p", "text-gray-600 mb-4 text-sm", article.summary);
+
+  // Stats
+  const stats = createElement("div", "flex items-center justify-between");
+  const btnContainer = createElement("div", "flex items-center gap-3");
+
+  // Bookmark button
+  const bookmarkBtn = createElement(
+    "button",
+    "bookmark-btn w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary",
+  );
+  const bookmarkIcon = createElement("i", `ri-bookmark-${article.isBookmarked ? "fill" : "line"}`);
+  bookmarkBtn.appendChild(bookmarkIcon);
+
+  // Share button
+  const shareBtn = createElement(
+    "button",
+    "share-btn w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary",
+  );
+  const shareIcon = createElement("i", "ri-share-line");
+  shareBtn.appendChild(shareIcon);
+
+  btnContainer.appendChild(bookmarkBtn);
+  btnContainer.appendChild(shareBtn);
+
+  // Date
+  const date = createElement("time", "text-sm text-gray-500", article.date);
+
+  stats.appendChild(btnContainer);
+  stats.appendChild(date);
+
+  // Read more
+  const footer = createElement("div", "px-6 py-4 bg-gray-50 border-t");
+  const readMoreBtn = createElement(
+    "button",
+    "read-more-btn w-full py-2 bg-primary text-white !rounded-button hover:bg-secondary",
+    "Read More",
+  );
+  footer.appendChild(readMoreBtn);
+
+  // Assembly
+  content.appendChild(header);
+  content.appendChild(summary);
+  content.appendChild(stats);
+  card.appendChild(content);
+  card.appendChild(footer);
+
+  return card;
+}
+
 // Article list render function
-async function renderArticles() {
+async function renderArticles(articles: Article[], container: HTMLElement) {
   showLoading();
 
   try {
     // Simulate loading delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const articleList = document.getElementById("articleList");
-
-    while (articleList.firstChild) {
-      articleList.removeChild(articleList.firstChild);
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
     }
 
-    // Filtering by feedId if selected
-    let articlesShowing = mockArticles;
-    if (currentFeedId !== null) {
-      articlesShowing = mockArticles.filter(article =>
-        article.feedId === currentFeedId);
+    if (articles.length === 0) {
+      const emptyMessage = createElement("div", "col-span-full text-center py-8");
+      const icon = createElement("i", "ri-search-line text-4xl text-gray-400 mb-2");
+      const text = createElement("p", "text-gray-500", "No articles found");
+
+      emptyMessage.appendChild(icon);
+      emptyMessage.appendChild(text);
+      container.appendChild(emptyMessage);
+      return;
     }
 
+    const fragment = document.createDocumentFragment();
 
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentArticles = articlesShowing.slice(startIndex, endIndex);
-
-    currentArticles.forEach(article => {
-      const articleCard = document.createElement('div');
-      articleCard.className = `bg-white rounded-lg shadow-sm overflow-hidden ${article.isUnread ? "ring-1 ring-primary/10" : ""}`;
-
-      const articleContainer = document.createElement('div');
-      articleContainer.className = 'p-6';
-
-      const titleDeleteButton = document.createElement('div');
-      titleDeleteButton.className = 'flex justify-between items-start mb-4';
-
-      const title = document.createElement('h2');
-      title.className = `text-lg ${article.isUnread ? "font-bold" : "font-medium"} text-gray-900`;
-      title.textContent = article.title;
-
-      const deleteIcon = document.createElement('i');
-      deleteIcon.className = 'ri-delete-bin-line';
-
-      const deleteButton = document.createElement('button');
-      deleteButton.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500';
-      deleteButton.appendChild(deleteIcon);
-      deleteButton.addEventListener('click', () => {
-        showDeleteModal(article.id);
-      });
-
-      titleDeleteButton.appendChild(title);
-      titleDeleteButton.appendChild(deleteButton);
-
-      // Summary
-      const summary = document.createElement('p');
-      summary.className = 'text-gray-600 mb-4 text-sm';
-      summary.textContent = article.summary;
-
-      // Stats 
-      const statsContainer = document.createElement('div');
-      statsContainer.className = 'flex items-center justify-between';
-
-      const buttonContainer = document.createElement('div');
-      buttonContainer.className = 'flex items-center gap-3';
-
-      const bookmarkIcon = document.createElement('i');
-      bookmarkIcon.className = `ri-bookmark-${article.isBookmarked ? "fill" : "line"}`;
-
-      const shareIcon = document.createElement('i');
-      shareIcon.className = 'ri-share-line';
-
-      const bookmarkButton = document.createElement('button');
-      bookmarkButton.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary';
-      bookmarkButton.appendChild(bookmarkIcon);
-      bookmarkButton.addEventListener('click', () => {
-        toggleBookmark(article.id);
-      });
-
-      const shareButton = document.createElement('button');
-      shareButton.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary';
-      shareButton.appendChild(shareIcon);
-      shareButton.addEventListener('click', () => {
-        shareArticle(article.id);
-      });
-
-      const date = document.createElement('time');
-      date.className = 'text-sm text-gray-500';
-      date.textContent = article.date;
-
-      buttonContainer.appendChild(bookmarkButton);
-      buttonContainer.appendChild(shareButton);
-      statsContainer.appendChild(buttonContainer)
-      statsContainer.appendChild(date);
-
-      const readMoreContainer = document.createElement('div');
-      readMoreContainer.className = 'px-6 py-4 bg-gray-50 border-t';
-
-      const readMoreButton = document.createElement('button');
-      readMoreButton.className = 'w-full py-2 bg-primary text-white !rounded-button hover:bg-secondary';
-      readMoreButton.textContent = 'Read More';
-      readMoreButton.addEventListener('click', () => {
-        readArticle(article.id);
-      });
-
-      readMoreContainer.appendChild(readMoreButton);
-
-      articleContainer.appendChild(titleDeleteButton);
-      articleContainer.appendChild(summary);
-      articleContainer.appendChild(statsContainer);
-      articleCard.appendChild(articleContainer);
-      articleCard.appendChild(readMoreContainer);
-      articleList?.appendChild(articleCard);
+    // Create article cards and add to fragment
+    articles.forEach((article) => {
+      const articleCard = createArticleCard(article);
+      fragment.appendChild(articleCard);
     });
 
+    container.appendChild(fragment);
+
+    setupArticleEvents(container);
   } catch (error) {
     console.error("Render articles failed:", error);
-    const articleList = document.getElementById("articleList");
-
-    const renderArticlesFailedContainer = document.createElement('div');
-    renderArticlesFailedContainer.className = 'col-span-full text-center py-8 text-red-500';
-
-    const errorIcon = document.createElement('i');
-    errorIcon.className = 'ri-error-warning-line text-4xl mb-2';
-
-    const message = document.createElement('p');
-    message.textContent = 'Failed to load articles. Please try again later.';
+    const renderArticlesFailedContainer = createElement(
+      "div",
+      "col-span-full text-center py-8 text-red-500",
+    );
+    const errorIcon = createElement("i", "ri-error-warning-line text-4xl mb-2");
+    const message = createElement("p", "", "Failed to load articles. Please try again later.");
 
     renderArticlesFailedContainer.appendChild(errorIcon);
     renderArticlesFailedContainer.appendChild(message);
-    articleList?.appendChild(renderArticlesFailedContainer);
+    container.appendChild(renderArticlesFailedContainer);
   } finally {
     hideLoading();
   }
 }
 
-function showDeleteModal(id) {
+function setupArticleEvents(container: HTMLElement) {
+  container.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const articleCard = target.closest(".article-card") as HTMLElement;
+
+    if (!articleCard) return;
+
+    const articleId = Number(articleCard.dataset.articleId);
+
+    if (target.closest(".delete-btn")) {
+      e.stopPropagation();
+      showDeleteModal(articleId);
+    } else if (target.closest(".bookmark-btn")) {
+      e.stopPropagation();
+      toggleBookmark(articleId);
+    } else if (target.closest(".share-btn")) {
+      e.stopPropagation();
+      shareArticle(articleId);
+    } else if (
+      target.closest(".read-more-btn") ||
+      target === articleCard ||
+      articleCard.contains(target)
+    ) {
+      readArticle(articleId);
+    }
+  });
+}
+
+function loadAndDisplayArticles() {
+  let articlesToShow = mockArticles;
+  if (currentFeedId !== null) {
+    articlesToShow = mockArticles.filter((article) => article.feedId === currentFeedId);
+  }
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedArticles = articlesToShow.slice(startIndex, endIndex);
+
+  const articleList = document.getElementById("articleList") as HTMLElement;
+
+  renderArticles(paginatedArticles, articleList);
+
+  updatePaginationButtons();
+}
+
+const deleteModal = document.getElementById("deleteModal") as HTMLElement;
+function showDeleteModal(id: number | null) {
   currentDeleteId = id;
-  document.getElementById("deleteModal").style.display = "flex";
+  deleteModal.style.display = "flex";
 }
 function closeDeleteModal() {
-  document.getElementById("deleteModal").style.display = "none";
+  deleteModal.style.display = "none";
   currentDeleteId = null;
 }
 function showLoginModal() {
@@ -530,14 +484,14 @@ function closeLoginModal() {
 document.addEventListener("DOMContentLoaded", () => {
   // Check URL for feed parameter
   const urlParams = new URLSearchParams(window.location.search);
-  const feedIdParam = urlParams.get('feedId');
+  const feedIdParam = urlParams.get("feedId");
   if (feedIdParam) {
     currentFeedId = parseInt(feedIdParam, 10);
   }
 
-  const loginButton = document.getElementById("loginButton");
-  const loginModal = document.getElementById("loginModal");
-  const closeButton = document.getElementById("closeLogin");
+  const loginButton = document.getElementById("loginButton") as HTMLButtonElement;
+  const loginModal = document.getElementById("loginModal") as HTMLElement;
+  const closeButton = document.getElementById("closeLogin") as HTMLButtonElement;
 
   if (!loginButton || !loginModal || !closeButton) {
     console.error("❌ One or more login modal elements not found!");
@@ -562,28 +516,25 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("closeDelete")?.addEventListener("click", closeDeleteModal);
 });
 
-
-
-
 function confirmDelete() {
   if (currentDeleteId !== null) {
     const index = mockArticles.findIndex((article) => article.id === currentDeleteId);
     if (index !== -1) {
       mockArticles.splice(index, 1);
-      renderArticles();
+      loadAndDisplayArticles();
     }
   }
   closeDeleteModal();
 }
-function toggleBookmark(id) {
+function toggleBookmark(id: number) {
   const article = mockArticles.find((article) => article.id === id);
   if (article) {
     article.isBookmarked = !article.isBookmarked;
-    renderArticles();
+    loadAndDisplayArticles();
     showToast(article.isBookmarked ? "Article bookmarked" : "Bookmark removed");
   }
 }
-function shareArticle(id) {
+function shareArticle(id: number) {
   const article = mockArticles.find((article) => article.id === id);
   if (article) {
     const shareUrl = `${window.location.origin}/article/${article.id}`;
@@ -597,7 +548,7 @@ function shareArticle(id) {
       });
   }
 }
-function showToast(message) {
+function showToast(message: string | null) {
   // Create toast element if it doesn't exist
   let toast = document.getElementById("toast");
   if (!toast) {
@@ -617,7 +568,7 @@ function showToast(message) {
     toast.classList.add("translate-y-full");
   }, 2000);
 }
-renderArticles();
+
+loadAndDisplayArticles();
 renderUnreadList();
-updatePaginationButtons();
 updateNotificationBadge();
