@@ -3,61 +3,7 @@
 // removing @ts-nocheck
 // I simply extracted this from the body of the page it was on. You will need to
 // combine related functionality into modules, and fix the Typescript errors.
-
-// Mock feeds data
-const mockFeeds = [
-  {
-    id: 1,
-    name: "TechCrunch",
-    url: "https://techcrunch.com/feed/",
-    category: "technology",
-    favicon:
-      "https://techcrunch.com/wp-content/uploads/2015/02/cropped-cropped-favicon-gradient.png?w=32",
-    articleCount: 156,
-    unreadCount: 23,
-    lastUpdated: "2025-02-26T14:30:00Z",
-  },
-  {
-    id: 2,
-    name: "NASA Science",
-    url: "https://science.nasa.gov/feed/",
-    category: "science",
-    favicon: "https://science.nasa.gov/wp-content/themes/science-2020/assets/img/favicon-32x32.png",
-    articleCount: 87,
-    unreadCount: 12,
-    lastUpdated: "2025-02-25T10:15:00Z",
-  },
-  {
-    id: 3,
-    name: "Harvard Business Review",
-    url: "https://hbr.org/feed",
-    category: "business",
-    favicon: "https://hbr.org/resources/images/favicon.ico",
-    articleCount: 203,
-    unreadCount: 45,
-    lastUpdated: "2025-02-26T08:45:00Z",
-  },
-  {
-    id: 4,
-    name: "Medical News Today",
-    url: "https://www.medicalnewstoday.com/feed",
-    category: "health",
-    favicon: "https://www.medicalnewstoday.com/favicon-32x32.png",
-    articleCount: 134,
-    unreadCount: 18,
-    lastUpdated: "2025-02-24T16:20:00Z",
-  },
-  {
-    id: 5,
-    name: "ESPN",
-    url: "https://www.espn.com/espn/rss/news",
-    category: "sports",
-    favicon: "https://a.espncdn.com/favicon.ico",
-    articleCount: 178,
-    unreadCount: 31,
-    lastUpdated: "2025-02-26T12:10:00Z",
-  },
-];
+import { mockFeeds } from './data/mock-data.ts';
 
 // Pagination variables
 let currentPage = 1;
