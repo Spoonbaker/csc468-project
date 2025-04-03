@@ -3,7 +3,10 @@ export interface Article {
     title: string;
     summary: string;
     date: string;
-    isUnread: boolean;
+    isUnread?: boolean;
     isBookmarked: boolean;
     feedId?: number;
+    source?: string;
+    sourceUrl?: string;
+    bookmarkedAt?: string;
   }
