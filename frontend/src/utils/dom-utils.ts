@@ -1,9 +1,9 @@
-export function createElement<T extends HTMLElement>(
-  tag: string,
+export function createElement<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
   className: string = "",
   textContent: string = "",
-): T {
-  const element = document.createElement(tag) as T;
+): HTMLElementTagNameMap[K] {
+  const element = document.createElement(tag);
   if (className) element.className = className;
   if (textContent) element.textContent = textContent;
   return element;
