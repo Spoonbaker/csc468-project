@@ -1,9 +1,12 @@
-// @ts-nocheck
-// Need to use proper type assertions or checks for all DOM queries before
-// removing @ts-nocheck
-// I simply extracted this from the body of the page it was on. You will need to
-// combine related functionality into modules, and fix the Typescript errors.
 import { mockFeeds } from './data/mock-data.ts';
+import { createElement } from "./utils/dom-utils.ts";
+
+// Feed variables
+const addFeedModal = document.getElementById("addFeedModal") as HTMLElement;
+const feedUrl = document.getElementById("feedUrl") as HTMLInputElement;
+const feedName = document.getElementById("feedName") as HTMLInputElement;
+const feedCategory = document.getElementById("feedCategory") as HTMLInputElement;
+
 
 // Pagination variables
 let currentPage = 1;
@@ -11,20 +14,22 @@ const itemsPerPage = 5;
 const totalPages = Math.ceil(mockFeeds.length / itemsPerPage);
 
 // Current feed to delete
-let currentDeleteFeedId = null;
+let currentDeleteFeedId: number | null = null;
 
 // Show loading indicator
 function showLoading() {
-  document.getElementById("loadingIndicator").style.display = "flex";
+  const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement; 
+  loadingIndicator.style.display = "flex";
 }
 
 // Hide loading indicator
 function hideLoading() {
-  document.getElementById("loadingIndicator").style.display = "none";
+  const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement;
+  loadingIndicator.style.display = "none";
 }
 
 // Format date
-function formatDate(dateString) {
+function formatDate(dateString: string | number | Date) {
   const date = new Date(dateString);
   return date.toLocaleString("en-US", {
     year: "numeric",
@@ -38,12 +43,12 @@ function formatDate(dateString) {
 // Render feeds list (supports search functionality)
 async function renderFeeds(query = "") {
   showLoading();
+  const feedList = document.getElementById("feedList");
 
   try {
     // Simulate loading delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const feedList = document.getElementById("feedList");
     if (!feedList) return console.error("❌ feedList not found");
 
     // Filter feeds based on search query (search by name only)
@@ -62,41 +67,27 @@ async function renderFeeds(query = "") {
 
     // Render matching feeds
     filteredFeeds.forEach(feed => {
-      const feedContainer = document.createElement("div");
-      feedContainer.className = "p-4 hover:bg-gray-50 border-b flex justify-between items-center";
+      const feedContainer = createElement("div", "p-4 hover:bg-gray-50 border-b flex justify-between items-center");
+  
+      const contentContainer = createElement("div", "flex items-center gap-3");
 
-      const contentContainer = document.createElement("div");
-      contentContainer.className = "flex items-center gap-3";
-
-      const icon = document.createElement("img");
+      const icon = createElement("img", "w-8 h-8 rounded-full bg-gray-100");
       icon.src = feed.favicon;
       icon.alt = "";
-      icon.className = "w-8 h-8 rounded-full bg-gray-100";
 
       const detailsContainer = document.createElement("div");
 
-      const nameHeading = document.createElement("h3");
-      nameHeading.className = "font-medium text-gray-900";
-      nameHeading.textContent = feed.name;
+      const nameHeading = createElement("h3", "font-medium text-gray-900", feed.name);
 
-      const urlPara = document.createElement("p");
-      urlPara.className = "text-sm text-gray-500";
-      urlPara.textContent = feed.url;
+      const urlPara = createElement("p", "text-sm text-gray-500", feed.url);
 
-      const statsContainer = document.createElement("div");
-      statsContainer.className = "flex items-center gap-4 mt-2";
+      const statsContainer = createElement("div", "flex items-center gap-4 mt-2");
 
-      const categorySpan = document.createElement("span");
-      categorySpan.className = "text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600";
-      categorySpan.textContent = feed.category;
+      const categorySpan = createElement("span", "text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600", feed.category);
 
-      const articleCountSpan = document.createElement("span");
-      articleCountSpan.className = "text-xs text-gray-500";
-      articleCountSpan.textContent = `${feed.articleCount} articles`;
+      const articleCountSpan = createElement("span", "text-xs text-gray-500", `${feed.articleCount} articles`);
 
-      const unreadCountSpan = document.createElement("span");
-      unreadCountSpan.className = "text-xs text-gray-500";
-      unreadCountSpan.textContent = `${feed.unreadCount} unread`;
+      const unreadCountSpan = createElement("span", "text-xs text-gray-500", `${feed.unreadCount} unread`);
 
       statsContainer.appendChild(categorySpan);
       statsContainer.appendChild(articleCountSpan);
@@ -110,9 +101,9 @@ async function renderFeeds(query = "") {
       contentContainer.appendChild(detailsContainer);
 
       // Buttons container
-      const buttonContainer = document.createElement("div");
-      buttonContainer.className = "flex items-center gap-3";
+      const buttonContainer = createElement("div", "flex items-center gap-3");
 
+      // FIX!
       // View articles button
       const articlesButton = document.createElement("button");
       articlesButton.className = "w-8 h-8 flex items-center justify-center text-gray-500 hover:text-primary";
@@ -138,7 +129,8 @@ async function renderFeeds(query = "") {
     });
 
     // Update feed count
-    document.getElementById("feedCount").textContent = `${mockFeeds.length} feeds`;
+    const feedCount = document.getElementById("feedCount") as HTMLElement;
+    feedCount.textContent = `${mockFeeds.length} feeds`;
 
     // Update pagination
     updatePagination();
@@ -147,7 +139,8 @@ async function renderFeeds(query = "") {
     updateStatistics();
   } catch (error) {
     console.error("❌ Failed to load feeds:", error);
-    feedList.innerHTML = `<p class="text-red-500 p-4">Failed to load feeds. Please try again later.</p>`;
+    const message = createElement("p", "text-red-500 p-4", "Failed to load feeds. Please try again later.");
+    feedList?.appendChild(message);
   } finally {
     hideLoading();
   }
@@ -155,13 +148,13 @@ async function renderFeeds(query = "") {
 
 // Update pagination controls
 function updatePagination() {
-  const prevButton = document.getElementById("prevPageBtn");
-  const nextButton = document.getElementById("nextPageBtn");
-  const pageInfo = document.getElementById("pageInfo");
+  const prevButton = document.getElementById("prevPageBtn") as HTMLButtonElement;
+  const nextButton = document.getElementById("nextPageBtn") as HTMLButtonElement;
+  const pageInfo = document.getElementById("pageInfo") as HTMLElement;
 
-  prevButton.disabled = currentPage === 1;
-  nextButton.disabled = currentPage === totalPages;
-  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  prevButton!.disabled = currentPage === 1;
+  nextButton!.disabled = currentPage === totalPages;
+  pageInfo!.textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
 // Update statistics in right sidebar
@@ -187,22 +180,27 @@ function nextPage() {
 
 // Show add feed modal
 function showAddFeedModal() {
-  document.getElementById("addFeedModal").style.display = "flex";
+  const addFeedModal = document.getElementById("addFeedModal") as HTMLElement;
+  addFeedModal.style.display = "flex";
 }
 
 // Close add feed modal
 function closeAddFeedModal() {
-  document.getElementById("addFeedModal").style.display = "none";
-  document.getElementById("feedUrl").value = "";
-  document.getElementById("feedName").value = "";
-  document.getElementById("feedCategory").value = "";
+  const addFeedModal = document.getElementById("addFeedModal") as HTMLElement;
+  const feedUrl = document.getElementById("feedUrl") as HTMLInputElement;
+  const feedName = document.getElementById("feedName") as HTMLInputElement;
+  const feedCategory = document.getElementById("feedCategory") as HTMLInputElement;
+  addFeedModal.style.display = "none";
+  feedUrl.value = "";
+  feedName.value = "";
+  feedCategory.value = "";
 }
 
 // Add new feed
 async function addFeed() {
-  const url = document.getElementById("feedUrl").value.trim();
-  const name = document.getElementById("feedName").value.trim();
-  const category = document.getElementById("feedCategory").value;
+  const url = feedUrl.value.trim();
+  const name = feedName.value.trim();
+  const category = feedCategory.value;
 
   if (!url) {
     showToast("Please enter a valid feed URL");
@@ -247,9 +245,10 @@ async function addFeed() {
 }
 
 // Show delete feed modal
-function showDeleteFeedModal(id) {
+function showDeleteFeedModal(id : number | null) {
   currentDeleteFeedId = id;
-  document.getElementById("deleteFeedModal").style.display = "flex";
+  const deleteFeedModal = document.getElementById("deleteFeedModal") as HTMLElement;
+  deleteFeedModal.style.display = "flex";
 }
 
 // Close delete feed modal (supports X button & Cancel button)
@@ -303,13 +302,13 @@ async function confirmDeleteFeed() {
 }
 
 // Show feed articles
-function showFeedArticles(id) {
+function showFeedArticles(id: number | null) {
   window.location.href = `index.html?feedId=${id}`;
 }
 
 // Show toast notification
-function showToast(message) {
-  const toast = document.getElementById("toast");
+function showToast(message: string | null) {
+  const toast = document.getElementById("toast") as HTMLDivElement;
   toast.textContent = message;
   toast.classList.remove("translate-y-full");
 
@@ -319,15 +318,18 @@ function showToast(message) {
 }
 
 // Event listeners
-document.getElementById("prevPageBtn").addEventListener("click", prevPage);
-document.getElementById("nextPageBtn").addEventListener("click", nextPage);
+const prevPageBtn = document.getElementById("prevPageBtn") as HTMLButtonElement;
+const nextPageBtn = document.getElementById("nextPageBtn") as HTMLButtonElement;
+prevPageBtn.addEventListener("click", prevPage);
+nextPageBtn.addEventListener("click", nextPage);
 
 //search feeds
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchInput");
   if (searchInput) {
-    searchInput.addEventListener("input", (e) => {
-      renderFeeds(e.target.value.toLowerCase());
+    searchInput.addEventListener("input", (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      renderFeeds(target.value.toLowerCase());
     });
   }
 });
@@ -336,4 +338,3 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
   renderFeeds();
 });
-
