@@ -1,7 +1,17 @@
 {
-  inputs.flakelight.url = "github:nix-community/flakelight";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flakelight = {
+      url = "github:nix-community/flakelight";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    garnix-lib = {
+      url = "github:garnix-io/garnix-lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-  outputs = { flakelight, ... }: flakelight ./. ({ config, ... }: {
+  outputs = { flakelight, garnix-lib, ... }: flakelight ./. ({ config, ... }: {
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
     packages = {
@@ -146,6 +156,8 @@
         "qpdf --empty --deterministic-id --pages ${raw-report} ${./report/resumes}/*.pdf -- $out";
 
     };
+
+    nixosConfigurations.deploy-host = { modules = [ garnix-lib.nixosModules.garnix ./containers/deploy-host.nix ]; };
 
     checks = {
       # Flakelight implicit checks:
