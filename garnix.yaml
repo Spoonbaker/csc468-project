@@ -3,3 +3,13 @@ builds:
   include:
     - "checks.x86_64-linux.*"
     # flakelight adds a check for each package and nixosConfiguration
+
+servers:
+  - configuration: deploy-host
+    deployment:
+      type: on-branch
+      branch: prod
+
+  - configuration: deploy-host
+    deployment:
+      type: on-pull-request
