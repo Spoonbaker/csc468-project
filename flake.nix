@@ -1,7 +1,17 @@
 {
-  inputs.flakelight.url = "github:nix-community/flakelight";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flakelight = {
+      url = "github:nix-community/flakelight";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    garnix-lib = {
+      url = "github:garnix-io/garnix-lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-  outputs = { flakelight, ... }: flakelight ./. ({ config, ... }: {
+  outputs = { flakelight, garnix-lib, self, ... }: flakelight ./. ({ config, ... }: {
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
     packages = {
@@ -145,6 +155,71 @@
         { nativeBuildInputs = [ qpdf ]; }
         "qpdf --empty --deterministic-id --pages ${raw-report} ${./report/resumes}/*.pdf -- $out";
 
+    };
+
+    nixosConfigurations.deploy-host = {
+      modules = [
+        garnix-lib.nixosModules.garnix
+        ({ pkgs, config, lib, ... }: {
+          nixpkgs.system = "x86_64-linux";
+
+          garnix.server.enable = true;
+          garnix.server.persistence.enable = true;
+          garnix.server.persistence.name = "aggregator";
+
+          system.stateVersion = "24.11";
+          system.configurationRevision = self.rev or self.dirtyRev or null;
+
+          virtualisation.oci-containers.containers =
+            let
+              deps = {
+                backend-api = [ "db" ];
+                frontend-nginx = [ "backend-api" ];
+              };
+              extraAttrs = {
+                frontend-nginx = {
+                  ports = [
+                    "80:80"
+                    "443:443"
+                  ];
+                  volumes = [ "${./containers/devCert}:/cert" ];
+                };
+              };
+              mkContainer = name: {
+                image = name;
+                imageStream = pkgs."${name}-container-stream";
+                networks = [ "aggregator" ];
+                dependsOn = [ "network-aggregator" ] ++ deps.${name} or [ ];
+              } // extraAttrs.${name} or { };
+            in
+            lib.genAttrs [ "db" "backend-api" "frontend-nginx" ] mkContainer;
+
+          systemd.services =
+            let
+              runtime = config.virtualisation.oci-containers.backend;
+              exec = "${config.virtualisation.${runtime}.package}/bin/${runtime}";
+            in
+            {
+              # This could easily have issues on docker
+              "${runtime}-network-aggregator" = {
+                serviceConfig = {
+                  Type = "oneshot";
+                  ExecStart = "${exec} network create --ignore aggregator";
+                  RemainAfterExit = true;
+                };
+              };
+            };
+
+          networking.firewall.allowedTCPPorts = [ 80 443 ];
+          networking.firewall.allowedUDPPorts = [ 443 ];
+
+          services.openssh.enable = true;
+          users.users.root.openssh.authorizedKeys.keys = [
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAv0D8TnyJQh0w8FvXECe+iroAyHjK7LtpYCKV+QFxv8 ellis@bismuth"
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINx3u8R9hux28AJ+6iDY0N+Qe5vvBDHACQrXpJPunKeA gus" # Found from GH, may not be accurate
+          ];
+        })
+      ];
     };
 
     checks = {

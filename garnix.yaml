@@ -5,3 +5,9 @@ builds:
     - "devShells.x86_64-linux.*"
     - "nixosConfigurations.*"
     # flakelight adds a check for each package and nixosConfiguration
+
+servers:
+  - configuration: deploy-host
+    deployment:
+      type: on-branch
+      branch: main
