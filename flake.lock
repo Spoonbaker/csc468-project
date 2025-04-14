@@ -2,14 +2,16 @@
   "nodes": {
     "flakelight": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": [
+          "nixpkgs"
+        ]
       },
       "locked": {
-        "lastModified": 1741005720,
-        "narHash": "sha256-zNIvYFBOTGomaxknkZLO/7p6eorwwgvHeatN2YySBPQ=",
+        "lastModified": 1744634762,
+        "narHash": "sha256-ETX7rbJjQPXGpiTHI2StAgkqoZVebG218ITs7nDL4w4=",
         "owner": "nix-community",
         "repo": "flakelight",
-        "rev": "f996547e5d142853ab6d619858a605af516d1d67",
+        "rev": "96367860907d477f72b6a985d70ebd0f63d23e4c",
         "type": "github"
       },
       "original": {
@@ -18,13 +20,33 @@
         "type": "github"
       }
     },
+    "garnix-lib": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1741124098,
+        "narHash": "sha256-IKw06PRrM6JCixYA9dqtAGpJh2rVyIn9/1O7cBAHqZ4=",
+        "owner": "garnix-io",
+        "repo": "garnix-lib",
+        "rev": "9544aae735c7f54b82585a661d1595a9e1ae3ccf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "garnix-io",
+        "repo": "garnix-lib",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1740828860,
-        "narHash": "sha256-cjbHI+zUzK5CPsQZqMhE3npTyYFt9tJ3+ohcfaOF/WM=",
+        "lastModified": 1744463964,
+        "narHash": "sha256-LWqduOgLHCFxiTNYi3Uj5Lgz0SR+Xhw3kr/3Xd0GPTM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "303bd8071377433a2d8f76e684ec773d70c5b642",
+        "rev": "2631b0b7abcea6e640ce31cd78ea58910d31e650",
         "type": "github"
       },
       "original": {
@@ -36,7 +58,9 @@
     },
     "root": {
       "inputs": {
-        "flakelight": "flakelight"
+        "flakelight": "flakelight",
+        "garnix-lib": "garnix-lib",
+        "nixpkgs": "nixpkgs"
       }
     }
   },

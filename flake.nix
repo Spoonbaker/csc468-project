@@ -1,7 +1,17 @@
 {
-  inputs.flakelight.url = "github:nix-community/flakelight";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flakelight = {
+      url = "github:nix-community/flakelight";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    garnix-lib = {
+      url = "github:garnix-io/garnix-lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
 
-  outputs = { flakelight, ... }: flakelight ./. ({ config, ... }: {
+  outputs = { flakelight, garnix-lib, ... }: flakelight ./. ({ config, ... }: {
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
     packages = {
@@ -145,6 +155,23 @@
         { nativeBuildInputs = [ qpdf ]; }
         "qpdf --empty --deterministic-id --pages ${raw-report} ${./report/resumes}/*.pdf -- $out";
 
+    };
+
+    nixosConfigurations.deploy-host = {
+      modules = [
+        garnix-lib.nixosModules.garnix
+        ({ pkgs, ... }: {
+          nixpkgs.system = "x86_64-linux";
+          garnix.server.enable = true;
+          system.stateVersion = "24.11";
+
+          services.openssh.enable = true;
+          users.users.root.openssh.authorizedKeys.keys = [
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAv0D8TnyJQh0w8FvXECe+iroAyHjK7LtpYCKV+QFxv8 ellis@bismuth"
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINx3u8R9hux28AJ+6iDY0N+Qe5vvBDHACQrXpJPunKeA gus"
+          ];
+        })
+      ];
     };
 
     checks = {
