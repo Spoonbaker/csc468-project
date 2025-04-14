@@ -160,15 +160,56 @@
     nixosConfigurations.deploy-host = {
       modules = [
         garnix-lib.nixosModules.garnix
-        ({ pkgs, ... }: {
+        ({ pkgs, config, lib, ... }: {
           nixpkgs.system = "x86_64-linux";
           garnix.server.enable = true;
           system.stateVersion = "24.11";
 
+          virtualisation.oci-containers.containers =
+            let
+              deps = {
+                backend-api = [ "db" ];
+                frontend-nginx = [ "backend-api" ];
+              };
+              extraAttrs = {
+                frontend-nginx.ports = [
+                  "80:80"
+                  "443:443"
+                ];
+              };
+              mkContainer = name: {
+                image = name;
+                imageStream = pkgs."${name}-container-stream";
+                networks = [ "aggregator" ];
+                dependsOn = [ "network-aggregator" ] ++ deps.${name} or [ ];
+              } // extraAttrs.${name} or { };
+            in
+            lib.genAttrs [ "db" "backend-api" "frontend-nginx" ] mkContainer;
+
+          systemd.services =
+            let
+              runtime = config.virtualisation.oci-containers.backend;
+            in
+            {
+              # This could easily have issues on docker
+              "${runtime}-network-aggregator" = {
+                serviceConfig = {
+                  Type = "oneshot";
+                  ExecStart = "${runtime} network create --ignore aggregator";
+                  RemainAfterExit = true;
+                };
+
+                path = [ config.virtualisation.${runtime}.package ];
+              };
+            };
+
+          networking.firewall.allowedTCPPorts = [ 80 443 ];
+          networking.firewall.allowedUDPPorts = [ 443 ];
+
           services.openssh.enable = true;
           users.users.root.openssh.authorizedKeys.keys = [
             "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAv0D8TnyJQh0w8FvXECe+iroAyHjK7LtpYCKV+QFxv8 ellis@bismuth"
-            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINx3u8R9hux28AJ+6iDY0N+Qe5vvBDHACQrXpJPunKeA gus"
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINx3u8R9hux28AJ+6iDY0N+Qe5vvBDHACQrXpJPunKeA gus" # Found from GH, may not be accurate
           ];
         })
       ];
