@@ -19,10 +19,7 @@
         <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
       </div>
       <div class="flex items-center gap-4">
-        <div class="relative w-10 h-10 flex items-center justify-center">
-          <i class="ri-notification-3-line text-xl text-gray-600"></i>
-          <span class="notification-badge">${mockArticles.filter(article => article.isUnread).length}</span>
-        </div>
+
         <button id="loginButton" class="px-4 py-2 bg-primary text-white !rounded-button hover:bg-primary/90">
           Login
         </button>
@@ -124,7 +121,17 @@
       </div>
     </main>
     <aside class="fixed right-0 top-16 bottom-0 w-64 bg-white border-l border-gray-200 p-4">
-      <h3 class="text-lg font-semibold mb-4">Unread Articles</h3>
+      <div class="flex items-center gap-2 mb-4">
+        <h3 class="text-lg font-semibold">Unread Articles</h3>
+        <div class="relative w-6 h-6">
+          <i class="ri-notification-3-line text-xl text-gray-600"></i>
+          <span id="notificationCount"
+            class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center leading-none shadow">
+            6
+          </span>
+        </div>
+      </div>
+
       <div class="space-y-4" id="unreadList"></div>
       <div class="flex justify-center items-center gap-2 mt-4 pt-4 border-t">
         <button

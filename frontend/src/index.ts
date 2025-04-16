@@ -2,6 +2,14 @@ import { Article } from "./models/article.ts";
 import { createElement } from "./utils/dom-utils.ts";
 import { mockArticles } from "./data/mock-data.ts";
 
+let hardcodedUnreadArticles = [
+  { id: 1, title: "Breakthrough in AI Medical Diagnostics", date: "2025-02-26" },
+  { id: 2, title: "The Future of Sustainable Urban Planning", date: "2025-02-25" },
+  { id: 3, title: "Quantum Computing: The Next Generation", date: "2025-02-24" },
+  { id: 4, title: "Deep Sea Discoveries: New Species Found", date: "2025-02-23" },
+  { id: 5, title: "Space Tourism: The Private Space Age", date: "2025-02-22" },
+  { id: 6, title: "Blockchain Revolution in Supply Chain", date: "2025-02-21" },
+];
 let currentUnreadPage = 1;
 const unreadItemsPerPage = 5;
 let currentFeedId: number | null = null;
@@ -10,66 +18,72 @@ function updateNotificationBadge() {
   const notif = document.querySelector(".notification-badge") as HTMLElement;
   notif.textContent = unreadCount.toString();
 }
+
 function renderUnreadList() {
   const unreadList = document.getElementById("unreadList");
-  const unreadArticles = mockArticles.filter((article) => article.isUnread);
-  updateNotificationBadge();
-  const totalUnreadPages = Math.ceil(unreadArticles.length / unreadItemsPerPage);
-  const startIndex = (currentUnreadPage - 1) * unreadItemsPerPage;
-  const endIndex = startIndex + unreadItemsPerPage;
-  const currentUnreadArticles = unreadArticles.slice(startIndex, endIndex);
-  if (unreadList) {
-    while (unreadList.firstChild) {
-      unreadList?.removeChild(unreadList.firstChild);
-    }
-  }
+  if (!unreadList) return;
 
-  currentUnreadArticles.forEach((article) => {
-    const unreadArticleContainer = document.createElement("div");
-    unreadArticleContainer.className =
-      "flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer";
-    unreadArticleContainer.addEventListener("click", () => {
-      readArticle(article.id);
-    });
+  unreadList.innerHTML = "";
+
+  const hardcodedArticles = hardcodedUnreadArticles;
+
+  const containerHeight = unreadList.clientHeight || 360;
+  const estimatedItemHeight = 90;
+  const itemsPerPage = Math.max(1, Math.floor(containerHeight / estimatedItemHeight));
+
+  const totalUnreadPages = Math.ceil(hardcodedArticles.length / itemsPerPage);
+  const startIndex = (currentUnreadPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPageArticles = hardcodedArticles.slice(startIndex, endIndex);
+
+  currentPageArticles.forEach((article) => {
+    const container = document.createElement("div");
+    container.className = "flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer";
+    container.onclick = () => {
+      // Remove from unread list
+      hardcodedUnreadArticles = hardcodedUnreadArticles.filter((a) => a.id !== article.id);
+
+      // Update unread UI
+      renderUnreadList();
+
+      // Navigate to article detail
+      window.location.href = `article-detail.html?id=${article.id}`;
+    };
+
 
     const circle = document.createElement("div");
     circle.className = "w-2 h-2 mt-2 rounded-full bg-primary";
 
-    const detailsContainer = document.createElement("div");
+    const textContainer = document.createElement("div");
 
-    const unreadArticleTitle = document.createElement("h4");
-    unreadArticleTitle.className = "text-sm font-medium text-gray-900";
-    unreadArticleTitle.textContent = article.title;
+    const title = document.createElement("h4");
+    title.className = "text-sm font-medium text-gray-900";
+    title.textContent = article.title;
 
-    const unreadArticleDate = document.createElement("time");
-    unreadArticleDate.className = "text-xs text-gray-500";
-    unreadArticleDate.textContent = article.date;
+    const date = document.createElement("time");
+    date.className = "text-xs text-gray-500";
+    date.textContent = article.date;
 
-    detailsContainer.appendChild(unreadArticleTitle);
-    detailsContainer.appendChild(unreadArticleDate);
+    textContainer.appendChild(title);
+    textContainer.appendChild(date);
+    container.appendChild(circle);
+    container.appendChild(textContainer);
 
-    unreadArticleContainer.appendChild(circle);
-    unreadArticleContainer.appendChild(detailsContainer);
-
-    unreadList?.appendChild(unreadArticleContainer);
+    unreadList.appendChild(container);
   });
 
-  const pageInfoElement = document.getElementById("unreadPageInfo") as HTMLElement;
+  const notif = document.getElementById("notificationCount") as HTMLElement;
+  if (notif) notif.textContent = hardcodedArticles.length.toString();
+
   const prevBtn = document.getElementById("unreadPrevBtn") as HTMLButtonElement;
   const nextBtn = document.getElementById("unreadNextBtn") as HTMLButtonElement;
+  const pageInfo = document.getElementById("unreadPageInfo") as HTMLElement;
 
-  if (pageInfoElement) {
-    pageInfoElement.textContent = `${currentUnreadPage}/${totalUnreadPages}`;
-  }
-
-  if (prevBtn) {
-    prevBtn.disabled = currentUnreadPage === 1;
-  }
-
-  if (nextBtn) {
-    nextBtn.disabled = currentUnreadPage === totalUnreadPages;
-  }
+  if (prevBtn) prevBtn.disabled = currentUnreadPage === 1;
+  if (nextBtn) nextBtn.disabled = currentUnreadPage === totalUnreadPages;
+  if (pageInfo) pageInfo.textContent = `${currentUnreadPage}/${totalUnreadPages}`;
 }
+
 
 function prevUnreadPage() {
   if (currentUnreadPage > 1) {
@@ -376,19 +390,20 @@ function closeLoginModal() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Check URL for feed parameter
+  // Read feedId from URL (used for filtering the main article list)
   const urlParams = new URLSearchParams(window.location.search);
   const feedIdParam = urlParams.get("feedId");
   if (feedIdParam) {
     currentFeedId = parseInt(feedIdParam, 10);
   }
 
+  // Login modal setup
   const loginButton = document.getElementById("loginButton") as HTMLButtonElement;
   const loginModal = document.getElementById("loginModal") as HTMLElement;
   const closeButton = document.getElementById("closeLogin") as HTMLButtonElement;
 
   if (!loginButton || !loginModal || !closeButton) {
-    console.error("❌ One or more login modal elements not found!");
+    console.error("❌ Login modal elements not found!");
     return;
   }
 
@@ -406,9 +421,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loginButton.addEventListener("click", showLoginModal);
   closeButton.addEventListener("click", closeLoginModal);
+
+  // Delete modal button events
   document.getElementById("cancelDelete")?.addEventListener("click", closeDeleteModal);
   document.getElementById("closeDelete")?.addEventListener("click", closeDeleteModal);
+  document.getElementById("confirmDelete")?.addEventListener("click", confirmDelete);
+
+  // Pagination for main article section
+  document.getElementById("prevPage")?.addEventListener("click", prevPage);
+  document.getElementById("nextPage")?.addEventListener("click", nextPage);
+
+  // Pagination for unread articles (right panel)
+  document.getElementById("unreadPrevBtn")?.addEventListener("click", () => {
+    if (currentUnreadPage > 1) {
+      currentUnreadPage--;
+      renderUnreadList();
+    }
+  });
+
+  document.getElementById("unreadNextBtn")?.addEventListener("click", () => {
+    const unreadList = document.getElementById("unreadList");
+    const containerHeight = unreadList?.clientHeight || 360;
+    const estimatedItemHeight = 90;
+    const itemsPerPage = Math.max(1, Math.floor(containerHeight / estimatedItemHeight));
+    const maxPage = Math.ceil(6 / itemsPerPage); // 6 hardcoded articles for now
+
+    if (currentUnreadPage < maxPage) {
+      currentUnreadPage++;
+      renderUnreadList();
+    }
+  });
+
+  // Initial render of unread articles
+  renderUnreadList();
+
+  // Re-render unread list on window resize
+  window.addEventListener("resize", renderUnreadList);
 });
+
 
 function confirmDelete() {
   if (currentDeleteId !== null) {
@@ -421,13 +471,35 @@ function confirmDelete() {
   closeDeleteModal();
 }
 function toggleBookmark(id: number) {
+  console.log("🔖 Bookmark toggled for article:", id);
+
   const article = mockArticles.find((article) => article.id === id);
   if (article) {
     article.isBookmarked = !article.isBookmarked;
-    loadAndDisplayArticles();
-    showToast(article.isBookmarked ? "Article bookmarked" : "Bookmark removed");
+
+    const articleCard = document.querySelector(`[data-article-id="${id}"]`);
+    const btn = articleCard?.querySelector(".bookmark-btn") as HTMLElement;
+
+    if (btn) {
+      btn.classList.add("scale-110", "transition-transform", "duration-200");
+      setTimeout(() => {
+        btn.classList.remove("scale-110");
+      }, 200);
+
+      const icon = btn.querySelector("i");
+      if (icon) {
+        icon.className = `ri-bookmark-${article.isBookmarked ? "fill" : "line"}`;
+      }
+    }
+
+    showToast(
+      article.isBookmarked
+        ? "🔖 Saved to Bookmarks!"
+        : "🗑️ Removed from Bookmarks"
+    );
   }
 }
+
 function shareArticle(id: number) {
   const article = mockArticles.find((article) => article.id === id);
   if (article) {
@@ -462,6 +534,10 @@ function showToast(message: string | null) {
     toast.classList.add("translate-y-full");
   }, 2000);
 }
+
+window.addEventListener("resize", () => {
+  renderUnreadList();
+});
 
 loadAndDisplayArticles();
 renderUnreadList();
