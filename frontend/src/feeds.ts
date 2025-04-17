@@ -1,6 +1,7 @@
 import { mockFeeds } from './data/mock-data.ts';
 import { createElement } from "./utils/dom-utils.ts";
 
+
 // Feed variables
 const addFeedModal = document.getElementById("addFeedModal") as HTMLElement;
 const feedUrl = document.getElementById("feedUrl") as HTMLInputElement;
@@ -11,14 +12,14 @@ const feedCategory = document.getElementById("feedCategory") as HTMLInputElement
 // Pagination variables
 let currentPage = 1;
 const itemsPerPage = 5;
-const totalPages = Math.ceil(mockFeeds.length / itemsPerPage);
+let totalPages = 1
 
 // Current feed to delete
 let currentDeleteFeedId: number | null = null;
 
 // Show loading indicator
 function showLoading() {
-  const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement; 
+  const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement;
   loadingIndicator.style.display = "flex";
 }
 
@@ -55,7 +56,10 @@ async function renderFeeds(query = "") {
     const filteredFeeds = mockFeeds.filter(feed =>
       feed.name.toLowerCase().includes(query.toLowerCase())
     );
-
+    totalPages = Math.max(1, Math.ceil(filteredFeeds.length / itemsPerPage));
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentFeeds = filteredFeeds.slice(startIndex, endIndex);
     // Clear the feed list
     feedList.innerHTML = "";
 
@@ -66,9 +70,9 @@ async function renderFeeds(query = "") {
     }
 
     // Render matching feeds
-    filteredFeeds.forEach(feed => {
+    currentFeeds.forEach(feed => {
       const feedContainer = createElement("div", "p-4 hover:bg-gray-50 border-b flex justify-between items-center");
-  
+
       const contentContainer = createElement("div", "flex items-center gap-3");
 
       const icon = createElement("img", "w-8 h-8 rounded-full bg-gray-100");
@@ -133,7 +137,7 @@ async function renderFeeds(query = "") {
     feedCount.textContent = `${mockFeeds.length} feeds`;
 
     // Update pagination
-    updatePagination();
+    updatePagination(totalPages);
 
     // Update statistics
     updateStatistics();
@@ -147,15 +151,16 @@ async function renderFeeds(query = "") {
 }
 
 // Update pagination controls
-function updatePagination() {
+function updatePagination(totalPages: number) {
   const prevButton = document.getElementById("prevPageBtn") as HTMLButtonElement;
   const nextButton = document.getElementById("nextPageBtn") as HTMLButtonElement;
   const pageInfo = document.getElementById("pageInfo") as HTMLElement;
 
-  prevButton!.disabled = currentPage === 1;
-  nextButton!.disabled = currentPage === totalPages;
-  pageInfo!.textContent = `Page ${currentPage} of ${totalPages}`;
+  prevButton.disabled = currentPage === 1;
+  nextButton.disabled = currentPage === totalPages;
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
 }
+
 
 // Update statistics in right sidebar
 function updateStatistics() {
@@ -202,21 +207,20 @@ async function addFeed() {
   const name = feedName.value.trim();
   const category = feedCategory.value;
 
-  if (!url) {
-    showToast("Please enter a valid feed URL");
+  if (!url || !/^https?:\/\//.test(url)) {
+    showToast("Please enter a valid feed URL (e.g., https://example.com)");
     return;
   }
 
   showLoading();
 
   try {
-    // Simulate API call
+
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Create new feed object
     const newFeed = {
       id: mockFeeds.length + 1,
-      name: name || url.replace(/^https?:\/\//, "").split("/")[0],
+      name: name || new URL(url).hostname,
       url: url,
       category: category || "other",
       favicon: `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}`,
@@ -225,19 +229,13 @@ async function addFeed() {
       lastUpdated: new Date().toISOString(),
     };
 
-    // Add to mock feeds
     mockFeeds.push(newFeed);
 
-    // Close modal
     closeAddFeedModal();
-
-    // Show success message
-    showToast("Feed added successfully");
-
-    // Refresh feed list
     renderFeeds();
+    showToast("Feed added successfully!");
   } catch (error) {
-    console.error("Add feed failed:", error);
+    console.error("❌ Add feed failed:", error);
     showToast("Failed to add feed. Please try again.");
   } finally {
     hideLoading();
@@ -245,7 +243,8 @@ async function addFeed() {
 }
 
 // Show delete feed modal
-function showDeleteFeedModal(id : number | null) {
+function showDeleteFeedModal(id: number | null) {
+  console.log("🗑 Showing delete modal for feed id:", id);
   currentDeleteFeedId = id;
   const deleteFeedModal = document.getElementById("deleteFeedModal") as HTMLElement;
   deleteFeedModal.style.display = "flex";
@@ -262,8 +261,29 @@ function closeDeleteFeedModal() {
 
 // Attach event listeners to close buttons
 document.addEventListener("DOMContentLoaded", () => {
+  const addFeedBtn = document.getElementById("addFeedBtn");
+  if (addFeedBtn) {
+    addFeedBtn.addEventListener("click", () => {
+      showAddFeedModal();
+    });
+  }
+  const closeAddFeedBtn = document.getElementById("closeAddFeedBtn");
+  if (closeAddFeedBtn) {
+    closeAddFeedBtn.addEventListener("click", () => {
+      closeAddFeedModal();
+    });
+  }
+  const confirmAddFeedBtn = document.getElementById("confirmAddFeedBtn");
+  if (confirmAddFeedBtn) {
+    confirmAddFeedBtn.addEventListener("click", () => {
+      addFeed();
+    });
+  }
+
   document.getElementById("closeDeleteModal")?.addEventListener("click", closeDeleteFeedModal);
   document.getElementById("cancelDelete")?.addEventListener("click", closeDeleteFeedModal);
+  document.getElementById("confirmDeleteBtn")?.addEventListener("click", confirmDeleteFeed);
+
 });
 
 // Confirm delete feed
@@ -318,12 +338,33 @@ function showToast(message: string | null) {
 }
 
 // Event listeners
-const prevPageBtn = document.getElementById("prevPageBtn") as HTMLButtonElement;
-const nextPageBtn = document.getElementById("nextPageBtn") as HTMLButtonElement;
-prevPageBtn.addEventListener("click", prevPage);
-nextPageBtn.addEventListener("click", nextPage);
+document.addEventListener("DOMContentLoaded", () => {
 
-//search feeds
+  const prevPageBtn = document.getElementById("prevPageBtn") as HTMLButtonElement;
+  const nextPageBtn = document.getElementById("nextPageBtn") as HTMLButtonElement;
+
+  if (prevPageBtn && nextPageBtn) {
+    prevPageBtn.addEventListener("click", () => {
+      prevPage();
+    });
+    nextPageBtn.addEventListener("click", () => {
+      nextPage();
+    });
+  }
+
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      renderFeeds(target.value.toLowerCase());
+    });
+  }
+
+  renderFeeds();
+});
+
+
+// Initialize
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchInput");
   if (searchInput) {
@@ -334,7 +375,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Initialize
-document.addEventListener("DOMContentLoaded", () => {
-  renderFeeds();
-});
+
+(window as any).showAddFeedModal = showAddFeedModal;
+(window as any).closeAddFeedModal = closeAddFeedModal;
+(window as any).addFeed = addFeed;
+(window as any).confirmDeleteFeed = confirmDeleteFeed;
