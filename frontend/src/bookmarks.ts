@@ -147,14 +147,14 @@ async function renderBookmarks() {
   showLoading();
 
   try {
-    // Simulate loading delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const bookmarksList = document.getElementById("bookmarksList");
-
     while (bookmarksList && bookmarksList.firstChild) {
       bookmarksList.removeChild(bookmarksList.firstChild);
     }
+    totalPages = Math.max(1, Math.ceil(filteredBookmarks.length / itemsPerPage));
+    if (currentPage > totalPages) currentPage = totalPages;
 
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -180,6 +180,7 @@ async function renderBookmarks() {
       currentBookmarks.forEach(bookmark => {
         const bookmarksContainer = document.createElement('article') /*as HTMLDivElement*/;
         bookmarksContainer.className = 'bg-white rounded-lg shadow-sm overflow-hidden';
+        bookmarksContainer.dataset.articleId = bookmark.id.toString();
 
         const contentContainer = document.createElement('div') /*as HTMLDivElement*/;
         contentContainer.className = 'p-6';
@@ -189,7 +190,7 @@ async function renderBookmarks() {
 
         const title = document.createElement('h2') /*as HTMLHeadingElement*/;
         title.className = 'text-lg font-medium text-gray-900';
-        
+
         const titleLink = document.createElement('a')/* as HTMLAnchorElement*/;
         titleLink.href = `article-detail.html?id=${bookmark.id}`;
         titleLink.className = 'hover:text-primary';
@@ -201,11 +202,15 @@ async function renderBookmarks() {
         const deleteBtnIcon = document.createElement('i') /*as HTMLElement*/;
         deleteBtnIcon.className = 'ri-delete-bin-line';
 
-        const deleteBtn = document.createElement('button') /*as HTMLButtonElement*/;
-        deleteBtn.className = 'w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500';
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500';
+
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          showDeleteModal(bookmark.id);
+        });
 
         deleteBtn.appendChild(deleteBtnIcon);
-
         titleContainer.appendChild(deleteBtn);
 
         const articleSummary = document.createElement('p') /*as HTMLParagraphElement*/;
@@ -226,7 +231,7 @@ async function renderBookmarks() {
 
         const dateContainer = document.createElement('div') /*as HTMLDivElement*/;
         dateContainer.className = 'flex flex-col items-end';
-        
+
         const articleDate = document.createElement('time') /*as HTMLTimeElement*/;
         articleDate.className = 'text-sm text-gray-500'
         articleDate.textContent = bookmark.date;
@@ -238,7 +243,7 @@ async function renderBookmarks() {
         bookmarkedAt.textContent = `Bookmarked ${formatRelativeTime(bookmark.bookmarkedAt)}`;
 
         dateContainer.appendChild(bookmarkedAt);
-        
+
         detailsContainer.appendChild(sourceContainer);
         detailsContainer.appendChild(dateContainer);
 
@@ -251,7 +256,7 @@ async function renderBookmarks() {
         readArticleAnchor.textContent = "Read Article";
 
         readArticleContainer.appendChild(readArticleAnchor);
-        
+
         contentContainer.appendChild(titleContainer);
         contentContainer.appendChild(articleSummary);
         contentContainer.appendChild(detailsContainer);
@@ -267,19 +272,19 @@ async function renderBookmarks() {
   } catch (error) {
     console.error("Render bookmarks failed:", error);
     const bookmarksList = document.getElementById("bookmarksList");
-  
+
     const bookmarksFailedContainer = document.createElement('div') /*as HTMLDivElement*/;
-      bookmarksFailedContainer.className = 'col-span-full text-center py-8 text-red-500';
+    bookmarksFailedContainer.className = 'col-span-full text-center py-8 text-red-500';
 
-      const bookmarksFailedIcon = document.createElement('i') /*as HTMLElement*/;
-      bookmarksFailedIcon.className = 'ri-error-warning-line text-4xl mb-2';
+    const bookmarksFailedIcon = document.createElement('i') /*as HTMLElement*/;
+    bookmarksFailedIcon.className = 'ri-error-warning-line text-4xl mb-2';
 
-      const bookmarksFailedText = document.createElement('p') /*as HTMLParagraphElement*/;
-      bookmarksFailedText.textContent = "Failed to load bookmarks. Please try again later.";
+    const bookmarksFailedText = document.createElement('p') /*as HTMLParagraphElement*/;
+    bookmarksFailedText.textContent = "Failed to load bookmarks. Please try again later.";
 
-      bookmarksFailedContainer.appendChild(bookmarksFailedIcon);
-      bookmarksFailedContainer.appendChild(bookmarksFailedText);
-      bookmarksList?.appendChild(bookmarksFailedContainer);
+    bookmarksFailedContainer.appendChild(bookmarksFailedIcon);
+    bookmarksFailedContainer.appendChild(bookmarksFailedText);
+    bookmarksList?.appendChild(bookmarksFailedContainer);
   } finally {
     hideLoading();
   }
@@ -287,14 +292,14 @@ async function renderBookmarks() {
 
 // Update pagination
 function updatePagination() {
-  totalPages = Math.ceil(filteredBookmarks.length / itemsPerPage);
-  const prevButton = document.getElementById("prevPage");
-  const nextButton = document.getElementById("nextPage");
-  const pageInfo = document.getElementById("pageInfo");
+  totalPages = Math.max(1, Math.ceil(filteredBookmarks.length / itemsPerPage));
+  const prevButton = document.getElementById("prevPage") as HTMLButtonElement;
+  const nextButton = document.getElementById("nextPage") as HTMLButtonElement;
+  const pageInfo = document.getElementById("pageInfo") as HTMLElement;
 
   prevButton.disabled = currentPage === 1;
-  nextButton.disabled = currentPage === totalPages || totalPages === 0;
-  pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+  nextButton.disabled = currentPage === totalPages;
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
 // Previous page
@@ -333,15 +338,9 @@ function handleSearch(searchTerm) {
 function showDeleteModal(id) {
   currentDeleteId = id;
   const modal = document.getElementById("deleteModal");
-  if (!modal) {
-    console.error("❌ deleteModal not found!");
-    return;
-  }
-  modal.classList.remove("hidden");
+  modal?.classList.remove("hidden");
   modal.style.display = "flex";
 }
-
-
 
 // Close delete modal
 function closeDeleteModal() {
@@ -359,6 +358,8 @@ function confirmDelete() {
     const index = mockBookmarks.findIndex((article) => article.id === currentDeleteId);
     if (index !== -1) {
       mockBookmarks.splice(index, 1);
+      filteredBookmarks = filteredBookmarks.filter((a) => a.id !== currentDeleteId);
+
       renderBookmarks(); // Refresh the bookmarks list
       showToast("Article removed from bookmarks");
     }
@@ -416,13 +417,41 @@ document.getElementById("sortOrder").addEventListener("change", (e) => {
 
 // Ensure event listeners are added after DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".delete-btn").forEach(button => {
+  document.querySelectorAll(".delete-btn").forEach((button) => {
     button.addEventListener("click", (e) => {
-      const articleId = e.target.dataset.id;
-      showDeleteModal(articleId);
+      e.stopPropagation();
+
+      const target = e.currentTarget as HTMLElement;
+      const articleCard = target.closest("[data-article-id]") as HTMLElement;
+
+      if (articleCard) {
+        const articleId = Number(articleCard.dataset.articleId);
+        showDeleteModal(articleId);
+      }
     });
+  });
+
+  document.getElementById("cancelDelete")?.addEventListener("click", closeDeleteModal);
+  document.getElementById("confirmDelete")?.addEventListener("click", confirmDelete);
+  document.getElementById("closeDelete")?.addEventListener("click", closeDeleteModal);
+
+  document.getElementById("prevPage")?.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderBookmarks();
+    }
+  });
+
+  document.getElementById("nextPage")?.addEventListener("click", () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderBookmarks();
+    }
   });
 });
 
+
 // Initialize
 renderBookmarks();
+(window as any).prevPage = prevPage;
+(window as any).nextPage = nextPage;
