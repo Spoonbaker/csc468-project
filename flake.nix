@@ -164,6 +164,9 @@
           nixpkgs.system = "x86_64-linux";
 
           garnix.server.enable = true;
+          garnix.server.persistence.enable = true;
+          garnix.server.persistence.name = "aggregator";
+
           system.stateVersion = "24.11";
           system.configurationRevision = self.rev or self.dirtyRev or null;
 
