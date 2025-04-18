@@ -7,6 +7,7 @@ _You may want to look at_:
 - The [report](./report.pdf), an explanation of Aggre-gator's design and how we built it
 - The [slide for our midterm presentation](./midterm-slide.pdf)
 - Our [CI on Garnix](https://garnix.io/repo/Spoonbaker/csc468-project); Garnix runs slightly faster than GitHub actions, and is able to take advantage of Nix's ability to cache builds, which makes CI even faster.
+- Our [Garnix deployment](https://deploy-host.main.csc468-project.Spoonbaker.garnix.me); after Garnix finishes buidling and checking on `main`, it deploys here. Note that it does use the self-signed dev cert.
 - Our [CloudLab experiment profile](https://www.cloudlab.us/p/cloud-edu/aggre-gator); currently just a machine with Docker, Docker-Compose, and Nix. Our plan is that deployment will be fully automated after the experiment is created.
 
 ## Development
@@ -17,7 +18,6 @@ Some general tips:
 
 - Commit messages should take the form `part: feature`, such as `frontend: make background neon yellow`
 - Format your code with `nix fmt` (whole project) or `npm run fmt` (frontend only). Your code needs to be formatted to be merged into `main`. If you use VSCode, you should make sure VSCode formats with Prettier, not the builtin HTML formatter.
-- If you want to add a description to the commit, add a blank line after the message, then the description.
 - If your commit fixes an issue, you can put `fixes #<issue number>` in the commit description. GitHub will close the issue when your commit is in `main`. A full list of verbs can be found [here](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword)
 - If there's something you need to do later, adding `T` `ODO` or `F` `IXME` (without the spaces!) will ensure it doesn't make it into production.
 - If possible, rebase your feature branches onto main often.
