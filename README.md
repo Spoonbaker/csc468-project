@@ -4,15 +4,7 @@
 
 ## Development Shell
 
-To get a dev shell with Nix, run `nix develop`. This is nicer in many ways if you have it set up.
-
-Otherwise, with Docker:
-
-```sh
-docker run -it --rm -v .:/repo -p 8081:8081 -w /repo nixery.dev/shell/just/fd/nodejs
-```
-
-Note that the docker command should be run from the repo root (the folder containing this file).
+To get a dev shell with Nix, run `nix develop`.
 
 ## Frontend
 
@@ -38,6 +30,42 @@ In the future, the backend API base URL should be available in scripts as `impor
 
 <!-- TODO: .env.{development, production} -->
 <!-- TODO: will we just always run the backend? -->
+
+## Development
+
+### General workflow:
+
+- You have some work item that you are going to work on
+- Implement that on a personal/team branch - `spoon/frontend`
+- Open a PR against `main`
+- In either the commit messages or PR, put `closes #<number>`, see [here](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword)
+- Group discussion - for changes only affecting a specific part, this will be brief/non-existant
+- Revise if needed
+- Merge & delete feature branch - if you follow the above, this will auto-close the work item!
+
+### Issue flow:
+
+- There's a bug, task that needs to be done, or future idea => create an issue!
+  - Create it on the [unclaimed work page](https://github.com/users/Spoonbaker/projects/1/views/8), under the appropriate team
+  - Assign the appropriate labels
+  - (Optional) if this is something that you are going to do yourself, assign yourself now. I (Ellis) like to use issues as a personal todo list this way.
+- The item starts off unassigned, meaning there is not one specific person who is going to do it.
+- When somone is looking to pick up additional work, they assign something for their team to themselves
+- We all move assigned tasks from Todo -> In Progress -> Done
+- 3 days after an item is closed, it is archived to clear up space.
+
+### Things to keep in mind:
+
+- Keep an eye on [open PRs](https://github.com/Spoonbaker/csc468-project/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen)
+  - Review group-wide and team-specific PRs
+  - To leave a comment or suggest changes, click and drag the plus button over the relevant lines
+  - To suggest changes, click the suggest changes button and then edit the text it creates
+  - If you think the PR is ready in its current state, approve the changes
+  - If you think there are issues blocking the merge, note what the issues are and click "request changes"
+- You can ping people on Github. Discord is great for chats, Github is great for asynchronous discussion.
+  - Make sure you check Github notifications
+- Commit names should generally take the form: `<thing you worked on>: <what you did>`, for example: `frontend: init`
+- You should format your code with the formatter
 
 ## Features
 
