@@ -143,7 +143,6 @@ async function renderFeeds(query = "") {
 
     updatePagination(totalPages);
 
-    updateStatistics();
   } catch (error) {
     console.error("❌ Failed to load feeds:", error);
     const message = createElement(
@@ -167,9 +166,7 @@ function updatePagination(totalPages: number) {
   pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
-function updateStatistics() {
-  const unreadArticles = mockFeeds.reduce((sum, feed) => sum + feed.unreadCount, 0);
-}
+
 
 function prevPage() {
   if (currentPage > 1) {
