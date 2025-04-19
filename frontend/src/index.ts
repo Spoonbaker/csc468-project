@@ -1,6 +1,7 @@
 import { Article } from "./models/article.ts";
 import { createElement } from "./utils/dom-utils.ts";
 import { mockArticles } from "./data/mock-data.ts";
+import { mockFeeds } from "./data/mock-data.ts";
 
 let hardcodedUnreadArticles = [
   { id: 1, title: "Breakthrough in AI Medical Diagnostics", date: "2025-02-26" },
@@ -11,7 +12,7 @@ let hardcodedUnreadArticles = [
   { id: 6, title: "Blockchain Revolution in Supply Chain", date: "2025-02-21" },
 ];
 let currentUnreadPage = 1;
-const unreadItemsPerPage = 5;
+// const unreadItemsPerPage = 5;
 let currentFeedId: number | null = null;
 function updateNotificationBadge() {
   const unreadCount = mockArticles.filter((article) => article.isUnread).length;
@@ -23,7 +24,9 @@ function renderUnreadList() {
   const unreadList = document.getElementById("unreadList");
   if (!unreadList) return;
 
-  unreadList.innerHTML = "";
+  while (unreadList.firstChild) {
+    unreadList.removeChild(unreadList.firstChild);
+  }
 
   const hardcodedArticles = hardcodedUnreadArticles;
 
@@ -37,8 +40,10 @@ function renderUnreadList() {
   const currentPageArticles = hardcodedArticles.slice(startIndex, endIndex);
 
   currentPageArticles.forEach((article) => {
-    const container = document.createElement("div");
-    container.className = "flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer";
+    const container = createElement(
+      "div",
+      "flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer",
+    );
     container.onclick = () => {
       // Remove from unread list
       hardcodedUnreadArticles = hardcodedUnreadArticles.filter((a) => a.id !== article.id);
@@ -49,7 +54,6 @@ function renderUnreadList() {
       // Navigate to article detail
       window.location.href = `article-detail.html?id=${article.id}`;
     };
-
 
     const circle = document.createElement("div");
     circle.className = "w-2 h-2 mt-2 rounded-full bg-primary";
@@ -84,22 +88,21 @@ function renderUnreadList() {
   if (pageInfo) pageInfo.textContent = `${currentUnreadPage}/${totalUnreadPages}`;
 }
 
+// function prevUnreadPage() {
+//   if (currentUnreadPage > 1) {
+//     currentUnreadPage--;
+//     renderUnreadList();
+//   }
+// }
 
-function prevUnreadPage() {
-  if (currentUnreadPage > 1) {
-    currentUnreadPage--;
-    renderUnreadList();
-  }
-}
-
-function nextUnreadPage() {
-  const unreadArticles = mockArticles.filter((article) => article.isUnread);
-  const totalUnreadPages = Math.ceil(unreadArticles.length / unreadItemsPerPage);
-  if (currentUnreadPage < totalUnreadPages) {
-    currentUnreadPage++;
-    renderUnreadList();
-  }
-}
+// function nextUnreadPage() {
+//   const unreadArticles = mockArticles.filter((article) => article.isUnread);
+//   const totalUnreadPages = Math.ceil(unreadArticles.length / unreadItemsPerPage);
+//   if (currentUnreadPage < totalUnreadPages) {
+//     currentUnreadPage++;
+//     renderUnreadList();
+//   }
+// }
 
 function readArticle(id: number) {
   const article = mockArticles.find((article) => article.id === id);
@@ -120,27 +123,39 @@ function readArticle(id: number) {
 let currentDeleteId: number | null = null;
 let currentPage = 1;
 const itemsPerPage = 6;
-const totalPages = Math.ceil(mockArticles.length / itemsPerPage);
-function updatePaginationButtons() {
+
+function updatePaginationButtons(totalPagesForCurrentFilter?: number) {
   const prevButton = document.getElementById("prevPage") as HTMLButtonElement;
   const nextButton = document.getElementById("nextPage") as HTMLButtonElement;
   const pageInfo = document.getElementById("pageInfo") as HTMLElement;
+
+  // Use provided total pages or calculate from all articles
+  const effectiveTotalPages =
+    totalPagesForCurrentFilter || Math.ceil(mockArticles.length / itemsPerPage);
+
   prevButton.disabled = currentPage === 1;
-  nextButton.disabled = currentPage === totalPages;
-  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  nextButton.disabled = currentPage === effectiveTotalPages;
+  pageInfo.textContent = `Page ${currentPage} of ${effectiveTotalPages}`;
 }
+
 function prevPage() {
   if (currentPage > 1) {
     currentPage--;
     loadAndDisplayArticles();
+    const articleList = document.getElementById("articleList") as HTMLElement;
+    setupArticleEvents(articleList);
   }
 }
+
 function nextPage() {
-  if (currentPage < totalPages) {
+  if (currentPage < Math.ceil(mockArticles.length / itemsPerPage)) {
     currentPage++;
     loadAndDisplayArticles();
+    const articleList = document.getElementById("articleList") as HTMLElement;
+    setupArticleEvents(articleList);
   }
 }
+
 function showLoading() {
   const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement;
   loadingIndicator.style.display = "flex";
@@ -356,9 +371,45 @@ function setupArticleEvents(container: HTMLElement) {
 }
 
 function loadAndDisplayArticles() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const feedIdParam = urlParams.get("feedId");
+
+  if (feedIdParam) {
+    currentFeedId = parseInt(feedIdParam, 10);
+  }
+
   let articlesToShow = mockArticles;
   if (currentFeedId !== null) {
+    const feedsButton = document.getElementById("feedsButton")!;
+    feedsButton.className =
+      "flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-white hover:bg-secondary";
+    const homeButton = document.getElementById("homeButton")!;
+    homeButton.className =
+      "flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100";
     articlesToShow = mockArticles.filter((article) => article.feedId === currentFeedId);
+
+    const currentFeed = mockFeeds?.find((feed) => feed.id === currentFeedId);
+    if (currentFeed) {
+      document.title = `${currentFeed.name} - Aggre-Gator RSS`;
+
+      const feedIndicator = document.getElementById("currentFeedIndicator");
+      if (feedIndicator) {
+        feedIndicator.textContent = `Viewing: ${currentFeed.name}`;
+        feedIndicator.style.display = "block";
+      }
+    }
+  } else {
+    document.title = "Aggre-Gator RSS";
+
+    const feedIndicator = document.getElementById("currentFeedIndicator");
+    if (feedIndicator) {
+      feedIndicator.style.display = "none";
+    }
+  }
+
+  const totalPagesForCurrentFilter = Math.ceil(articlesToShow.length / itemsPerPage);
+  if (currentPage > totalPagesForCurrentFilter) {
+    currentPage = 1;
   }
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -366,10 +417,9 @@ function loadAndDisplayArticles() {
   const paginatedArticles = articlesToShow.slice(startIndex, endIndex);
 
   const articleList = document.getElementById("articleList") as HTMLElement;
-
   renderArticles(paginatedArticles, articleList);
 
-  updatePaginationButtons();
+  updatePaginationButtons(totalPagesForCurrentFilter);
 }
 
 const deleteModal = document.getElementById("deleteModal") as HTMLElement;
@@ -381,13 +431,13 @@ function closeDeleteModal() {
   deleteModal.style.display = "none";
   currentDeleteId = null;
 }
-function showLoginModal() {
-  document.getElementById("loginModal")?.classList.add("show");
-}
+// function showLoginModal() {
+//   document.getElementById("loginModal")?.classList.add("show");
+// }
 
-function closeLoginModal() {
-  document.getElementById("loginModal")?.classList.remove("show");
-}
+// function closeLoginModal() {
+//   document.getElementById("loginModal")?.classList.remove("show");
+// }
 
 document.addEventListener("DOMContentLoaded", () => {
   // Read feedId from URL (used for filtering the main article list)
@@ -452,13 +502,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  if (!document.getElementById("currentFeedIndicator")) {
+    const mainContent = document.querySelector("main");
+    if (mainContent) {
+      const feedIndicator = createElement(
+        "div",
+        "bg-primary/10 text-primary px-4 py-2 rounded-lg mb-4 hidden",
+      );
+      feedIndicator.id = "currentFeedIndicator";
+
+      if (mainContent.firstChild) {
+        mainContent.insertBefore(feedIndicator, mainContent.firstChild);
+      } else {
+        mainContent.appendChild(feedIndicator);
+      }
+    }
+  }
+
   // Initial render of unread articles
   renderUnreadList();
 
   // Re-render unread list on window resize
   window.addEventListener("resize", renderUnreadList);
-});
 
+  // Initial article load
+  loadAndDisplayArticles();
+});
 
 function confirmDelete() {
   if (currentDeleteId !== null) {
@@ -470,6 +539,7 @@ function confirmDelete() {
   }
   closeDeleteModal();
 }
+
 function toggleBookmark(id: number) {
   console.log("🔖 Bookmark toggled for article:", id);
 
@@ -478,7 +548,7 @@ function toggleBookmark(id: number) {
     article.isBookmarked = !article.isBookmarked;
 
     const articleCard = document.querySelector(`[data-article-id="${id}"]`);
-    const btn = articleCard?.querySelector(".bookmark-btn") as HTMLElement;
+    const btn = articleCard?.querySelector(".bookmark-btn") as HTMLButtonElement;
 
     if (btn) {
       btn.classList.add("scale-110", "transition-transform", "duration-200");
@@ -492,11 +562,7 @@ function toggleBookmark(id: number) {
       }
     }
 
-    showToast(
-      article.isBookmarked
-        ? "🔖 Saved to Bookmarks!"
-        : "🗑️ Removed from Bookmarks"
-    );
+    showToast(article.isBookmarked ? "🔖 Saved to Bookmarks!" : "🗑️ Removed from Bookmarks");
   }
 }
 
@@ -539,6 +605,6 @@ window.addEventListener("resize", () => {
   renderUnreadList();
 });
 
-loadAndDisplayArticles();
-renderUnreadList();
+// Initial load has been moved to DOMContentLoaded event
+// This prevents issues with elements not being in the DOM yet
 updateNotificationBadge();

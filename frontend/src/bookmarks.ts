@@ -1,72 +1,15 @@
-// @ts-nocheck
-// Need to use proper type assertions or checks for all DOM queries before
-// removing @ts-nocheck
-// I simply extracted this from the body of the page it was on. You will need to
-// combine related functionality into modules, and fix the Typescript errors.
-
-// Mock bookmarked articles
-const mockBookmarks = [
-  {
-    id: 1,
-    title: "Breakthrough in AI Medical Diagnostics",
-    summary:
-      "Recent studies show AI technology achieving 95% accuracy in early cancer detection, revolutionizing medical diagnosis procedures...",
-    date: "2025-02-26",
-    source: "Medical Technology Today",
-    sourceUrl: "https://medicaltechnology.com",
-    bookmarkedAt: "2025-02-26T14:30:00Z",
-  },
-  {
-    id: 3,
-    title: "Quantum Computing: The Next Generation",
-    summary:
-      "IBM's latest quantum processor breaks the 100-qubit barrier, opening new possibilities for complex computational problems...",
-    date: "2025-02-24",
-    source: "Quantum Science Journal",
-    sourceUrl: "https://quantumscience.org",
-    bookmarkedAt: "2025-02-24T09:15:00Z",
-  },
-  {
-    id: 5,
-    title: "Space Tourism: The Private Space Age",
-    summary:
-      "With SpaceX and Blue Origin advancing commercial space projects, civilian space travel becomes increasingly accessible...",
-    date: "2025-02-22",
-    source: "NASA Science",
-    sourceUrl: "https://science.nasa.gov",
-    bookmarkedAt: "2025-02-23T16:45:00Z",
-  },
-  {
-    id: 8,
-    title: "Advances in Renewable Energy Storage",
-    summary:
-      "Breakthrough in battery technology promises to solve renewable energy storage challenges and accelerate clean energy adoption...",
-    date: "2025-02-19",
-    source: "Clean Tech Review",
-    sourceUrl: "https://cleantechreview.com",
-    bookmarkedAt: "2025-02-20T11:20:00Z",
-  },
-  {
-    id: 9,
-    title: "The Rise of Digital Currencies",
-    summary:
-      "Central banks worldwide are developing digital currencies, potentially reshaping the future of global finance...",
-    date: "2025-02-18",
-    source: "Neural Tech Today",
-    sourceUrl: "https://neuraltech.com",
-    bookmarkedAt: "2025-02-18T08:30:00Z",
-  },
-];
+import { createElement } from "./utils/dom-utils.ts";
+import { mockArticles } from "./data/mock-data.ts";
 
 // Pagination variables
 let currentPage = 1;
 const itemsPerPage = 4;
-let filteredBookmarks = [...mockBookmarks];
+let filteredBookmarks = mockArticles.filter((article) => article.isBookmarked);
 let totalPages = Math.ceil(filteredBookmarks.length / itemsPerPage);
-let currentDeleteId = null;
+let currentDeleteId: number | null = null;
 
 // Format date
-function formatDate(dateString) {
+function formatDate(dateString: string | number | Date) {
   const date = new Date(dateString);
   return date.toLocaleString("en-US", {
     year: "numeric",
@@ -76,10 +19,10 @@ function formatDate(dateString) {
 }
 
 // Format relative time
-function formatRelativeTime(dateString) {
+function formatRelativeTime(dateString: string | number | Date) {
   const date = new Date(dateString);
   const now = new Date();
-  const diffMs = now - date;
+  const diffMs = now.getTime() - date.getTime();
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
   const diffHour = Math.floor(diffMin / 60);
@@ -100,46 +43,18 @@ function formatRelativeTime(dateString) {
 
 // Show loading indicator
 function showLoading() {
-  document.getElementById("loadingIndicator").style.display = "flex";
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  if (loadingIndicator) {
+    loadingIndicator.style.display = "flex";
+  }
 }
 
 // Hide loading indicator
 function hideLoading() {
-  document.getElementById("loadingIndicator").style.display = "none";
-}
-
-// Article template
-function getBookmarkTemplate(article) {
-  return `
-          <article class="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div class="p-6">
-                  <div class="flex justify-between items-start mb-4">
-                      <h2 class="text-lg font-medium text-gray-900">
-                          <a href="article-detail.html?id=${article.id}" class="hover:text-primary">${article.title}</a>
-                      </h2>
-                      <button onclick="showDeleteModal(${article.id})" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500">
-                          <i class="ri-delete-bin-line"></i>
-                      </button>
-                  </div>
-                  <p class="text-gray-600 mb-4 text-sm">${article.summary}</p>
-                  <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-2">
-                          <span class="text-sm text-gray-700">${article.source}</span>
-                      </div>
-                      <div class="flex flex-col items-end">
-                          <time class="text-sm text-gray-500">${article.date}</time>
-                          <span class="text-xs text-gray-400">Bookmarked ${formatRelativeTime(article.bookmarkedAt)}</span>
-                      </div>
-                  </div>
-              </div>
-              <div class="px-6 py-4 bg-gray-50 border-t">
-                  <a href="article-detail.html?id=${article.id}" 
-                     class="block w-full py-2 bg-primary text-white text-center !rounded-button hover:bg-secondary">
-                      Read Article
-                  </a>
-              </div>
-          </article>
-      `;
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  if (loadingIndicator) {
+    loadingIndicator.style.display = "none";
+  }
 }
 
 // Render bookmarks
@@ -161,49 +76,38 @@ async function renderBookmarks() {
     const currentBookmarks = filteredBookmarks.slice(startIndex, endIndex);
 
     if (currentBookmarks.length === 0) {
-      const noBookmarksContainer = document.createElement('div') /*as HTMLDivElement*/;
-      noBookmarksContainer.className = 'col-span-full text-center py-8';
-
-      const noBookmarksIcon = document.createElement('i') /*as HTMLElement*/;
-      noBookmarksIcon.className = 'ri-bookmark-line text-4xl text-gray-400 mb-2';
-
-      const noBookmarksText = document.createElement('p') /*as HTMLParagraphElement*/;
-      noBookmarksText.className = 'text-gray-500';
-      noBookmarksText.textContent = "No bookmarked articles";
+      const noBookmarksContainer = createElement("div", "col-span-full text-center py-8");
+      const noBookmarksIcon = createElement(
+        "i",
+        "ri-bookmark-line text-4xl text-gray-400 mb-2",
+      ); /*as HTMLElement*/
+      const noBookmarksText = createElement("p", "text-gray-500", "No bookmarked articles");
 
       noBookmarksContainer.appendChild(noBookmarksIcon);
       noBookmarksContainer.appendChild(noBookmarksText);
       bookmarksList?.appendChild(noBookmarksContainer);
-
-
     } else {
-      currentBookmarks.forEach(bookmark => {
-        const bookmarksContainer = document.createElement('article') /*as HTMLDivElement*/;
-        bookmarksContainer.className = 'bg-white rounded-lg shadow-sm overflow-hidden';
+      currentBookmarks.forEach((bookmark) => {
+        const bookmarksContainer = createElement(
+          "article",
+          "bg-white rounded-lg shadow-sm overflow-hidden",
+        );
         bookmarksContainer.dataset.articleId = bookmark.id.toString();
 
-        const contentContainer = document.createElement('div') /*as HTMLDivElement*/;
-        contentContainer.className = 'p-6';
-
-        const titleContainer = document.createElement('div') /*as HTMLDivElement*/;
-        titleContainer.className = 'flex justify-between items-start mb-4';
-
-        const title = document.createElement('h2') /*as HTMLHeadingElement*/;
-        title.className = 'text-lg font-medium text-gray-900';
-
-        const titleLink = document.createElement('a')/* as HTMLAnchorElement*/;
+        const contentContainer = createElement("div", "p-6");
+        const titleContainer = createElement("div", "flex justify-between items-start mb-4");
+        const title = createElement("h2", "text-lg font-medium text-gray-900");
+        const titleLink = createElement("a", "hover:text-primary", bookmark.title);
         titleLink.href = `article-detail.html?id=${bookmark.id}`;
-        titleLink.className = 'hover:text-primary';
-        titleLink.textContent = bookmark.title;
 
         title.appendChild(titleLink);
         titleContainer.appendChild(title);
 
-        const deleteBtnIcon = document.createElement('i') /*as HTMLElement*/;
-        deleteBtnIcon.className = 'ri-delete-bin-line';
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500';
+        const deleteBtnIcon = createElement("i", "ri-delete-bin-line");
+        const deleteBtn = createElement(
+          "button",
+          "delete-btn w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500",
+        );
 
         deleteBtn.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -213,48 +117,33 @@ async function renderBookmarks() {
         deleteBtn.appendChild(deleteBtnIcon);
         titleContainer.appendChild(deleteBtn);
 
-        const articleSummary = document.createElement('p') /*as HTMLParagraphElement*/;
-        articleSummary.className = 'text-gray-600 mb-4 text-sm';
-        articleSummary.textContent = bookmark.summary;
-
-        const detailsContainer = document.createElement('div') /*as HTMLDivElement*/;
-        detailsContainer.className = 'flex items-center justify-between';
-
-        const sourceContainer = document.createElement('div') /*as HTMLDivElement*/;
-        sourceContainer.className = 'flex items-center gap-2';
-
-        const articleSource = document.createElement('span') /*as HTMLSpanElement*/;
-        articleSource.className = 'text-sm text-gray-700';
-        articleSource.textContent = bookmark.source;
-
+        const articleSummary = createElement("p", "text-gray-600 mb-4 text-sm", bookmark.summary);
+        const detailsContainer = createElement("div", "flex items-center justify-between");
+        const sourceContainer = createElement("div", "flex items-center gap-2");
+        const articleSource = createElement("span", "text-sm text-gray-700", bookmark.source);
         sourceContainer.appendChild(articleSource);
-
-        const dateContainer = document.createElement('div') /*as HTMLDivElement*/;
-        dateContainer.className = 'flex flex-col items-end';
-
-        const articleDate = document.createElement('time') /*as HTMLTimeElement*/;
-        articleDate.className = 'text-sm text-gray-500'
-        articleDate.textContent = bookmark.date;
-
+        const dateContainer = createElement("div", "flex flex-col items-end");
+        const articleDate = createElement("time", "text-sm text-gray-500", bookmark.date);
         dateContainer.appendChild(articleDate);
 
-        const bookmarkedAt = document.createElement('span')/* as HTMLSpanElement*/;
-        bookmarkedAt.className = 'text-xs text-gray-400';
-        bookmarkedAt.textContent = `Bookmarked ${formatRelativeTime(bookmark.bookmarkedAt)}`;
+        const bookmarkedAt = createElement(
+          "span",
+          "text-xs text-gray-400",
+          `Bookmarked ${formatRelativeTime(bookmark.bookmarkedAt!)}`,
+        );
 
         dateContainer.appendChild(bookmarkedAt);
 
         detailsContainer.appendChild(sourceContainer);
         detailsContainer.appendChild(dateContainer);
 
-        const readArticleContainer = document.createElement('div') /*as HTMLElement*/;
-        readArticleContainer.className = 'px-6 py-4 bg-gray-50 border-t';
-
-        const readArticleAnchor = document.createElement('a') /*as HTMLAnchorElement*/;
-        readArticleAnchor.className = 'block w-full py-2 bg-primary text-white text-center !rounded-button hover:bg-secondary';
+        const readArticleContainer = createElement("div", "px-6 py-4 bg-gray-50 border-t");
+        const readArticleAnchor = createElement(
+          "a",
+          "block w-full py-2 bg-primary text-white text-center !rounded-button hover:bg-secondary",
+          "Read Article",
+        );
         readArticleAnchor.href = `article-detail.html?id=${bookmark.id}`;
-        readArticleAnchor.textContent = "Read Article";
-
         readArticleContainer.appendChild(readArticleAnchor);
 
         contentContainer.appendChild(titleContainer);
@@ -267,21 +156,21 @@ async function renderBookmarks() {
       });
     }
 
-    // Update pagination
     updatePagination();
   } catch (error) {
     console.error("Render bookmarks failed:", error);
     const bookmarksList = document.getElementById("bookmarksList");
 
-    const bookmarksFailedContainer = document.createElement('div') /*as HTMLDivElement*/;
-    bookmarksFailedContainer.className = 'col-span-full text-center py-8 text-red-500';
-
-    const bookmarksFailedIcon = document.createElement('i') /*as HTMLElement*/;
-    bookmarksFailedIcon.className = 'ri-error-warning-line text-4xl mb-2';
-
-    const bookmarksFailedText = document.createElement('p') /*as HTMLParagraphElement*/;
-    bookmarksFailedText.textContent = "Failed to load bookmarks. Please try again later.";
-
+    const bookmarksFailedContainer = createElement(
+      "div",
+      "col-span-full text-center py-8 text-red-500",
+    );
+    const bookmarksFailedIcon = createElement("i", "ri-error-warning-line text-4xl mb-2");
+    const bookmarksFailedText = createElement(
+      "p",
+      "",
+      "Failed to load bookmarks. Please try again later.",
+    );
     bookmarksFailedContainer.appendChild(bookmarksFailedIcon);
     bookmarksFailedContainer.appendChild(bookmarksFailedText);
     bookmarksList?.appendChild(bookmarksFailedContainer);
@@ -290,7 +179,6 @@ async function renderBookmarks() {
   }
 }
 
-// Update pagination
 function updatePagination() {
   totalPages = Math.max(1, Math.ceil(filteredBookmarks.length / itemsPerPage));
   const prevButton = document.getElementById("prevPage") as HTMLButtonElement;
@@ -302,7 +190,6 @@ function updatePagination() {
   pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
-// Previous page
 function prevPage() {
   if (currentPage > 1) {
     currentPage--;
@@ -310,7 +197,6 @@ function prevPage() {
   }
 }
 
-// Next page
 function nextPage() {
   if (currentPage < totalPages) {
     currentPage++;
@@ -318,104 +204,111 @@ function nextPage() {
   }
 }
 
-// Search bookmarks
-function handleSearch(searchTerm) {
+function handleSearch(searchTerm: string) {
   if (searchTerm.trim() === "") {
-    filteredBookmarks = [...mockBookmarks];
+    filteredBookmarks = mockArticles.filter((article) => article.isBookmarked);
   } else {
-    filteredBookmarks = mockBookmarks.filter(
-      (bookmark) =>
-        bookmark.title.toLowerCase().includes(searchTerm) ||
-        bookmark.source.toLowerCase().includes(searchTerm) ||
-        bookmark.summary.toLowerCase().includes(searchTerm),
+    filteredBookmarks = mockArticles.filter(
+      (article) =>
+        article.isBookmarked &&
+        (article.title.toLowerCase().includes(searchTerm) ||
+          (article.source || "").toLowerCase().includes(searchTerm) ||
+          article.summary.toLowerCase().includes(searchTerm)),
     );
   }
   currentPage = 1;
   renderBookmarks();
 }
 
-// Show delete modal
-function showDeleteModal(id) {
+function showDeleteModal(id: number) {
   currentDeleteId = id;
   const modal = document.getElementById("deleteModal");
-  modal?.classList.remove("hidden");
-  modal.style.display = "flex";
+  if (modal) {
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+  }
 }
 
-// Close delete modal
 function closeDeleteModal() {
   const modal = document.getElementById("deleteModal");
-  modal?.classList.add("hidden");
-  modal.style.display = "none";
-  currentDeleteId = null;
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.style.display = "none";
+    currentDeleteId = null;
+  }
 }
 
-
-// Confirm delete
 function confirmDelete() {
   if (currentDeleteId !== null) {
-    // Remove the article from bookmarks
-    const index = mockBookmarks.findIndex((article) => article.id === currentDeleteId);
-    if (index !== -1) {
-      mockBookmarks.splice(index, 1);
-      filteredBookmarks = filteredBookmarks.filter((a) => a.id !== currentDeleteId);
-
-      renderBookmarks(); // Refresh the bookmarks list
+    const article = mockArticles.find((article) => article.id === currentDeleteId);
+    if (article) {
+      article.isBookmarked = false;
+      filteredBookmarks = mockArticles.filter((article) => article.isBookmarked);
+      renderBookmarks();
       showToast("Article removed from bookmarks");
     }
   }
   closeDeleteModal();
 }
 
-// Show toast notification
-function showToast(message) {
+function showToast(message: string | null) {
   const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.classList.remove("translate-y-full");
+  if (toast) {
+    toast.textContent = message;
+    toast.classList.remove("translate-y-full");
 
-  setTimeout(() => {
-    toast.classList.add("translate-y-full");
-  }, 2000);
+    setTimeout(() => {
+      toast.classList.add("translate-y-full");
+    }, 2000);
+  }
 }
 
-// Sort bookmarks
-function sortBookmarks(order) {
+type SortOrder = "newest" | "oldest" | "title" | "source";
+function sortBookmarks(order: SortOrder): void {
   switch (order) {
     case "newest":
-      filteredBookmarks.sort((a, b) => new Date(b.bookmarkedAt) - new Date(a.bookmarkedAt));
+      filteredBookmarks.sort(
+        (a, b) => new Date(b.bookmarkedAt!).getTime() - new Date(a.bookmarkedAt!).getTime(),
+      );
       break;
     case "oldest":
-      filteredBookmarks.sort((a, b) => new Date(a.bookmarkedAt) - new Date(b.bookmarkedAt));
+      filteredBookmarks.sort(
+        (a, b) => new Date(a.bookmarkedAt!).getTime() - new Date(b.bookmarkedAt!).getTime(),
+      );
       break;
     case "title":
       filteredBookmarks.sort((a, b) => a.title.localeCompare(b.title));
       break;
     case "source":
-      filteredBookmarks.sort((a, b) => a.source.localeCompare(b.source));
+      filteredBookmarks.sort((a, b) => a.source!.localeCompare(b.source!));
       break;
     default:
-      filteredBookmarks.sort((a, b) => new Date(b.bookmarkedAt) - new Date(a.bookmarkedAt));
+      filteredBookmarks.sort(
+        (a, b) => new Date(b.bookmarkedAt!).getTime() - new Date(a.bookmarkedAt!).getTime(),
+      );
   }
   currentPage = 1;
   renderBookmarks();
 }
 
-// Event listeners
-document.getElementById("searchInput").addEventListener("input", (e) => {
-  const searchTerm = e.target.value.toLowerCase();
+const searchInput = document.getElementById("searchInput") as HTMLElement;
+searchInput.addEventListener("input", (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  const searchTerm = target.value.toLowerCase();
+  const bookmarksList = document.getElementById("bookmarksList") as HTMLElement;
   if (searchTerm.trim() === "") {
-    document.getElementById("bookmarksList").classList.remove("searching");
+    bookmarksList.classList.remove("searching");
   } else {
-    document.getElementById("bookmarksList").classList.add("searching");
+    bookmarksList.classList.add("searching");
   }
   handleSearch(searchTerm);
 });
-
-document.getElementById("sortOrder").addEventListener("change", (e) => {
-  sortBookmarks(e.target.value);
+const sortOrder = document.getElementById("sortOrder") as HTMLSelectElement;
+sortOrder.addEventListener("change", (e: Event) => {
+  const target = e.target as HTMLSelectElement;
+  sortBookmarks(target.value as SortOrder);
 });
 
-// Ensure event listeners are added after DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".delete-btn").forEach((button) => {
     button.addEventListener("click", (e) => {
@@ -450,8 +343,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-
-// Initialize
 renderBookmarks();
 (window as any).prevPage = prevPage;
 (window as any).nextPage = nextPage;
