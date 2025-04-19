@@ -1,11 +1,13 @@
 # CSC 468 Project
+
 <!-- TODO: Decide on name -->
 
 ## Development Shell
 
-To get a dev shell with Nix, run `nix-shell`. This is nicer in many ways if you have it set up.
+To get a dev shell with Nix, run `nix develop`. This is nicer in many ways if you have it set up.
 
 Otherwise, with Docker:
+
 ```sh
 docker run -it --rm -v .:/repo -p 8081:8081 -w /repo nixery.dev/shell/just/fd/nodejs
 ```
@@ -33,6 +35,7 @@ Vite also lets us import most web-related files, and any file with `?raw`. (See 
 Generally, you should prefer putting files in `src/` over `public/`, so that Vite will work its magic.
 
 In the future, the backend API base URL should be available in scripts as `import.meta.env.VITE_API_BASE`. <!-- TODO: give example usage -->
+
 <!-- TODO: .env.{development, production} -->
 <!-- TODO: will we just always run the backend? -->
 
@@ -45,4 +48,3 @@ In the future, the backend API base URL should be available in scripts as `impor
 - Extra stuff if we have time
   - OAuth user accounts - Google, GH
   - Silly overcomplicated "enterprise-grade" backend
-
