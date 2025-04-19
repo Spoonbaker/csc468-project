@@ -1,7 +1,5 @@
 /* The `layer(base)` breaks this, not sure why*/
-@import "remixicon/fonts/remixicon.css"
-/*layer(base)*/
-;
+@import "remixicon/fonts/remixicon.css" /*layer(base)*/;
 @import "@fontsource/pacifico" layer(base);
 
 @import "tailwindcss";
@@ -31,7 +29,6 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-
   *,
   ::after,
   ::before,
@@ -85,7 +82,6 @@ input[type="number"]::-webkit-outer-spin-button {
 #loadingIndicator {
   background-color: transparent !important;
 }
-
 
 #loginModal {
   display: none;

@@ -1,5 +1,5 @@
-import { Article } from '../models/article.ts';
-import { Feed } from '../models/feed.ts';
+import { Article } from "../models/article.ts";
+import { Feed } from "../models/feed.ts";
 
 export const mockArticles: Article[] = [
   {
@@ -166,6 +166,5 @@ export const mockFeeds: Feed[] = [
     articleCount: 101,
     unreadCount: 20,
     lastUpdated: "2025-02-25T08:30:00Z",
-  }
-
+  },
 ];
