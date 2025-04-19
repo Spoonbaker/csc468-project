@@ -167,7 +167,7 @@ function hideLoading() {
 }
 
 // Debounce function implementation
-function debounce<Args extends any[]>(
+function debounce<Args extends unknown[]>(
   func: (...args: Args) => void,
   wait: number,
 ): (...args: Args) => void {
