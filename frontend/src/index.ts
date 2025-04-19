@@ -167,11 +167,15 @@ function hideLoading() {
 }
 
 // Debounce function implementation
-function debounce(func: Function, wait: number) {
-  let timeout: number | undefined;
-  return function (...args: any[]) {
+function debounce<Args extends any[]>(
+  func: (...args: Args) => void,
+  wait: number,
+): (...args: Args) => void {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  return function (...args: Args): void {
     clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait) as unknown as number;
+    timeout = setTimeout(() => func(...args), wait);
   };
 }
 

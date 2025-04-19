@@ -2,16 +2,9 @@ import { mockFeeds } from "./data/mock-data.ts";
 import { createElement } from "./utils/dom-utils.ts";
 
 // Feed variables
-const addFeedModal = document.getElementById("addFeedModal") as HTMLElement;
-const feedUrl = document.getElementById("feedUrl") as HTMLInputElement;
-const feedName = document.getElementById("feedName") as HTMLInputElement;
-const feedCategory = document.getElementById("feedCategory") as HTMLInputElement;
-
-// Pagination variables
 let currentPage = 1;
 const itemsPerPage = 5;
 let totalPages = 1;
-
 let currentDeleteFeedId: number | null = null;
 
 function showLoading() {
@@ -24,16 +17,15 @@ function hideLoading() {
   loadingIndicator.style.display = "none";
 }
 
-// function formatDate(dateString: string | number | Date) {
-//   const date = new Date(dateString);
-//   return date.toLocaleString("en-US", {
-//     year: "numeric",
-//     month: "short",
-//     day: "numeric",
-//     hour: "2-digit",
-//     minute: "2-digit",
-//   });
-// }
+function showToast(message: string | null) {
+  const toast = document.getElementById("toast") as HTMLDivElement;
+  toast.textContent = message;
+  toast.classList.remove("translate-y-full");
+
+  setTimeout(() => {
+    toast.classList.add("translate-y-full");
+  }, 3000);
+}
 
 async function renderFeeds(query = "") {
   showLoading();
@@ -52,13 +44,13 @@ async function renderFeeds(query = "") {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentFeeds = filteredFeeds.slice(startIndex, endIndex);
+
     while (feedList.firstChild) {
       feedList.removeChild(feedList.firstChild);
     }
 
     if (filteredFeeds.length === 0) {
       const noFeedsMessage = createElement("p", "text-gray-500 p-4", "No feeds found");
-
       feedList.appendChild(noFeedsMessage);
       return;
     }
@@ -142,7 +134,6 @@ async function renderFeeds(query = "") {
     feedCount.textContent = `${mockFeeds.length} feeds`;
 
     updatePagination(totalPages);
-
   } catch (error) {
     console.error("❌ Failed to load feeds:", error);
     const message = createElement(
@@ -166,8 +157,6 @@ function updatePagination(totalPages: number) {
   pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
-
-
 function prevPage() {
   if (currentPage > 1) {
     currentPage--;
@@ -183,6 +172,7 @@ function nextPage() {
 }
 
 function showAddFeedModal() {
+  const addFeedModal = document.getElementById("addFeedModal") as HTMLElement;
   addFeedModal.style.display = "flex";
 }
 
@@ -191,13 +181,33 @@ function closeAddFeedModal() {
   const feedUrl = document.getElementById("feedUrl") as HTMLInputElement;
   const feedName = document.getElementById("feedName") as HTMLInputElement;
   const feedCategory = document.getElementById("feedCategory") as HTMLInputElement;
+
   addFeedModal.style.display = "none";
   feedUrl.value = "";
   feedName.value = "";
   feedCategory.value = "";
 }
 
+function showDeleteFeedModal(id: number | null) {
+  console.log("🗑 Showing delete modal for feed id:", id);
+  currentDeleteFeedId = id;
+  const deleteFeedModal = document.getElementById("deleteFeedModal") as HTMLElement;
+  deleteFeedModal.style.display = "flex";
+}
+
+function closeDeleteFeedModal() {
+  const modal = document.getElementById("deleteFeedModal");
+  if (modal) {
+    modal.style.display = "none";
+  }
+  currentDeleteFeedId = null;
+}
+
 async function addFeed() {
+  const feedUrl = document.getElementById("feedUrl") as HTMLInputElement;
+  const feedName = document.getElementById("feedName") as HTMLInputElement;
+  const feedCategory = document.getElementById("feedCategory") as HTMLInputElement;
+
   const url = feedUrl.value.trim();
   const name = feedName.value.trim();
   const category = feedCategory.value;
@@ -236,45 +246,6 @@ async function addFeed() {
   }
 }
 
-function showDeleteFeedModal(id: number | null) {
-  console.log("🗑 Showing delete modal for feed id:", id);
-  currentDeleteFeedId = id;
-  const deleteFeedModal = document.getElementById("deleteFeedModal") as HTMLElement;
-  deleteFeedModal.style.display = "flex";
-}
-
-function closeDeleteFeedModal() {
-  const modal = document.getElementById("deleteFeedModal");
-  if (modal) {
-    modal.style.display = "none";
-  }
-  currentDeleteFeedId = null;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const addFeedBtn = document.getElementById("addFeedBtn");
-  if (addFeedBtn) {
-    addFeedBtn.addEventListener("click", () => {
-      showAddFeedModal();
-    });
-  }
-  const closeAddFeedBtn = document.getElementById("closeAddFeedBtn");
-  if (closeAddFeedBtn) {
-    closeAddFeedBtn.addEventListener("click", () => {
-      closeAddFeedModal();
-    });
-  }
-  const confirmAddFeedBtn = document.getElementById("confirmAddFeedBtn");
-  if (confirmAddFeedBtn) {
-    confirmAddFeedBtn.addEventListener("click", () => {
-      addFeed();
-    });
-  }
-  document.getElementById("closeDeleteModal")?.addEventListener("click", closeDeleteFeedModal);
-  document.getElementById("cancelDelete")?.addEventListener("click", closeDeleteFeedModal);
-  document.getElementById("confirmDeleteBtn")?.addEventListener("click", confirmDeleteFeed);
-});
-
 async function confirmDeleteFeed() {
   if (currentDeleteFeedId === null) {
     closeDeleteFeedModal();
@@ -291,9 +262,7 @@ async function confirmDeleteFeed() {
 
     if (index !== -1) {
       mockFeeds.splice(index, 1);
-
       showToast("Feed deleted successfully");
-
       renderFeeds();
     }
   } catch (error) {
@@ -309,51 +278,28 @@ function showFeedArticles(id: number | null) {
   window.location.href = `index.html?feedId=${id}`;
 }
 
-function showToast(message: string | null) {
-  const toast = document.getElementById("toast") as HTMLDivElement;
-  toast.textContent = message;
-  toast.classList.remove("translate-y-full");
-
-  setTimeout(() => {
-    toast.classList.add("translate-y-full");
-  }, 3000);
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const prevPageBtn = document.getElementById("prevPageBtn") as HTMLButtonElement;
-  const nextPageBtn = document.getElementById("nextPageBtn") as HTMLButtonElement;
-
-  if (prevPageBtn && nextPageBtn) {
-    prevPageBtn.addEventListener("click", () => {
-      prevPage();
-    });
-    nextPageBtn.addEventListener("click", () => {
-      nextPage();
-    });
-  }
-
+function initializeApp() {
+  const prevPageBtn = document.getElementById("prevPageBtn");
+  const nextPageBtn = document.getElementById("nextPageBtn");
   const searchInput = document.getElementById("searchInput");
-  if (searchInput) {
-    searchInput.addEventListener("input", (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      renderFeeds(target.value.toLowerCase());
-    });
-  }
+
+  prevPageBtn?.addEventListener("click", prevPage);
+  nextPageBtn?.addEventListener("click", nextPage);
+
+  searchInput?.addEventListener("input", (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    renderFeeds(target.value.toLowerCase());
+  });
+
+  document.getElementById("addFeedBtn")?.addEventListener("click", showAddFeedModal);
+  document.getElementById("closeAddFeedBtn")?.addEventListener("click", closeAddFeedModal);
+  document.getElementById("confirmAddFeedBtn")?.addEventListener("click", addFeed);
+
+  document.getElementById("closeDeleteModal")?.addEventListener("click", closeDeleteFeedModal);
+  document.getElementById("cancelDelete")?.addEventListener("click", closeDeleteFeedModal);
+  document.getElementById("confirmDeleteBtn")?.addEventListener("click", confirmDeleteFeed);
 
   renderFeeds();
-});
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("searchInput");
-  if (searchInput) {
-    searchInput.addEventListener("input", (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      renderFeeds(target.value.toLowerCase());
-    });
-  }
-});
-
-(window as any).showAddFeedModal = showAddFeedModal;
-(window as any).closeAddFeedModal = closeAddFeedModal;
-(window as any).addFeed = addFeed;
-(window as any).confirmDeleteFeed = confirmDeleteFeed;
+document.addEventListener("DOMContentLoaded", initializeApp);
