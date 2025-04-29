@@ -83,6 +83,15 @@ input[type="number"]::-webkit-outer-spin-button {
   background-color: transparent !important;
 }
 
+/* Modal visibility classes */
+.modal-hidden {
+  display: none;
+}
+
+.modal-visible {
+  display: flex;
+}
+
 #loginModal {
   display: none;
   align-items: center;
@@ -92,7 +101,7 @@ input[type="number"]::-webkit-outer-spin-button {
   background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
-#loginModal.show {
+#loginModal.modal-visible {
   display: flex;
 }
 
@@ -107,5 +116,8 @@ input[type="number"]::-webkit-outer-spin-button {
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.3) !important;
-  /* Change to semi-transparent */
+}
+
+#deleteModal.modal-visible {
+  display: flex;
 }

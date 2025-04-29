@@ -1,15 +1,19 @@
-import { mockFeeds } from "./data/mock-data.ts";
-import { createElement } from "./utils/dom-utils.ts";
+import { ApiClient } from "./utils/api";
+import { createElement } from "./utils/dom-utils";
 
-// Feed variables
 let currentPage = 1;
 const itemsPerPage = 5;
 let totalPages = 1;
-let currentDeleteFeedId: number | null = null;
+let currentDeleteFeedId: string | null = null;
 
 function showLoading() {
   const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement;
   loadingIndicator.style.display = "flex";
+  loadingIndicator.style.pointerEvents = "none";
+  const innerDiv = loadingIndicator.querySelector("div") as HTMLElement;
+  if (innerDiv) {
+    innerDiv.style.pointerEvents = "auto";
+  }
 }
 
 function hideLoading() {
@@ -32,14 +36,15 @@ async function renderFeeds(query = "") {
   const feedList = document.getElementById("feedList");
 
   try {
-    // Simulate loading delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     if (!feedList) return console.error("❌ feedList not found");
 
-    const filteredFeeds = mockFeeds.filter((feed) =>
-      feed.name.toLowerCase().includes(query.toLowerCase()),
+    const feedIds = await ApiClient.getUserFeeds();
+    const feeds = await ApiClient.getFeedsInfo(feedIds);
+    
+    const filteredFeeds = feeds.filter((feed) =>
+      feed.title.toLowerCase().includes(query.toLowerCase())
     );
+
     totalPages = Math.max(1, Math.ceil(filteredFeeds.length / itemsPerPage));
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -55,7 +60,6 @@ async function renderFeeds(query = "") {
       return;
     }
 
-    // Render matching feeds
     currentFeeds.forEach((feed) => {
       const feedContainer = createElement(
         "div",
@@ -65,31 +69,29 @@ async function renderFeeds(query = "") {
       const contentContainer = createElement("div", "flex items-center gap-3");
 
       const icon = createElement("img", "w-8 h-8 rounded-full bg-gray-100");
-      icon.src = feed.favicon;
+      const domain = new URL(feed.link).hostname;
+      icon.src = `https://www.google.com/s2/favicons?domain=${domain}`;
       icon.alt = "";
 
       const detailsContainer = document.createElement("div");
-      const nameHeading = createElement("h3", "font-medium text-gray-900", feed.name);
-      const urlPara = createElement("p", "text-sm text-gray-500", feed.url);
+      const nameHeading = createElement("h3", "font-medium text-gray-900", feed.title);
+      const urlPara = createElement("p", "text-sm text-gray-500", feed.link);
       const statsContainer = createElement("div", "flex items-center gap-4 mt-2");
-      const categorySpan = createElement(
-        "span",
-        "text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600",
-        feed.category,
-      );
-      const articleCountSpan = createElement(
-        "span",
-        "text-xs text-gray-500",
-        `${feed.articleCount} articles`,
-      );
+      
+      if (feed.category) {
+        const categorySpan = createElement(
+          "span",
+          "text-xs px-2 py-1 bg-gray-100 rounded-full text-gray-600",
+          feed.category
+        );
+        statsContainer.appendChild(categorySpan);
+      }
+
       const unreadCountSpan = createElement(
         "span",
         "text-xs text-gray-500",
-        `${feed.unreadCount} unread`,
+        `${feed.unreadCount || 0} unread`
       );
-
-      statsContainer.appendChild(categorySpan);
-      statsContainer.appendChild(articleCountSpan);
       statsContainer.appendChild(unreadCountSpan);
 
       detailsContainer.appendChild(nameHeading);
@@ -131,7 +133,7 @@ async function renderFeeds(query = "") {
     });
 
     const feedCount = document.getElementById("feedCount") as HTMLElement;
-    feedCount.textContent = `${mockFeeds.length} feeds`;
+    feedCount.textContent = `${feeds.length} feeds`;
 
     updatePagination(totalPages);
   } catch (error) {
@@ -188,8 +190,7 @@ function closeAddFeedModal() {
   feedCategory.value = "";
 }
 
-function showDeleteFeedModal(id: number | null) {
-  console.log("🗑 Showing delete modal for feed id:", id);
+function showDeleteFeedModal(id: string) {
   currentDeleteFeedId = id;
   const deleteFeedModal = document.getElementById("deleteFeedModal") as HTMLElement;
   deleteFeedModal.style.display = "flex";
@@ -209,8 +210,6 @@ async function addFeed() {
   const feedCategory = document.getElementById("feedCategory") as HTMLInputElement;
 
   const url = feedUrl.value.trim();
-  const name = feedName.value.trim();
-  const category = feedCategory.value;
 
   if (!url || !/^https?:\/\//.test(url)) {
     showToast("Please enter a valid feed URL (e.g., https://example.com)");
@@ -220,21 +219,7 @@ async function addFeed() {
   showLoading();
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const newFeed = {
-      id: mockFeeds.length + 1,
-      name: name || new URL(url).hostname,
-      url: url,
-      category: category || "other",
-      favicon: `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}`,
-      articleCount: 0,
-      unreadCount: 0,
-      lastUpdated: new Date().toISOString(),
-    };
-
-    mockFeeds.push(newFeed);
-
+    await ApiClient.addFeed(url);
     closeAddFeedModal();
     renderFeeds();
     showToast("Feed added successfully!");
@@ -255,16 +240,9 @@ async function confirmDeleteFeed() {
   showLoading();
 
   try {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const index = mockFeeds.findIndex((feed) => feed.id === currentDeleteFeedId);
-
-    if (index !== -1) {
-      mockFeeds.splice(index, 1);
-      showToast("Feed deleted successfully");
-      renderFeeds();
-    }
+    await ApiClient.deleteFeed(currentDeleteFeedId);
+    showToast("Feed deleted successfully");
+    renderFeeds();
   } catch (error) {
     console.error("Delete feed failed:", error);
     showToast("Failed to delete feed. Please try again.");
@@ -274,11 +252,17 @@ async function confirmDeleteFeed() {
   }
 }
 
-function showFeedArticles(id: number | null) {
+function showFeedArticles(id: string) {
   window.location.href = `index.html?feedId=${id}`;
 }
 
 function initializeApp() {
+  // Check authentication first
+  if (!ApiClient.isAuthenticated()) {
+    window.location.href = "index.html";
+    return;
+  }
+
   const prevPageBtn = document.getElementById("prevPageBtn");
   const nextPageBtn = document.getElementById("nextPageBtn");
   const searchInput = document.getElementById("searchInput");

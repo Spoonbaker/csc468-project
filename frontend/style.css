@@ -1,0 +1,8 @@
+#loadingIndicator {
+  background-color: transparent !important;
+  pointer-events: none;
+}
+
+#loadingIndicator > div {
+  pointer-events: auto; 
+} 
