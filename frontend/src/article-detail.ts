@@ -1,57 +1,116 @@
-import { mockFeeds, mockArticles } from "./data/mock-data.ts";
-import { Article } from "./models/article.ts";
-import { createElement } from "./utils/dom-utils.ts";
+import { ApiClient, Article } from "./utils/api";
+import { createElement } from "./utils/dom-utils";
 
-let activeArticle: Article;
+let activeArticle: Article | null = null;
 
-function getArticleIdFromUrl() {
+function getArticleIdFromUrl(): string | null {
   const urlParams = new URLSearchParams(window.location.search);
-  return parseInt(urlParams.get("id") || "") || 1;
+  return urlParams.get("id");
 }
 
-function getFeedById(feedId: number | undefined) {
-  return mockFeeds.find((feed) => feed.id === feedId);
-}
-
-function loadArticle() {
-  const articleId = getArticleIdFromUrl();
-  const articleData = mockArticles.find((a) => a.id === articleId);
-  activeArticle = articleData!;
-  const articleTitle = document.getElementById("articleTitle") as HTMLElement;
-
-  document.title = `${articleData!.title} - Aggre-Gator RSS`;
-  articleTitle.textContent = articleData!.title;
-
-  const feed = getFeedById(articleData!.feedId);
-  const sourceTitle = document.getElementById("sourceTitle") as HTMLElement;
-  const sourceFavicon = document.getElementById("sourceFavicon") as HTMLImageElement;
-
-  sourceTitle.textContent = feed?.name || "Unknown Feed";
-  sourceFavicon.src = feed?.favicon || "https://example.com/favicon.ico";
-
-  const articleDate = document.getElementById("articleDate") as HTMLElement;
-
-  articleDate.textContent = articleData!.date;
-
-  const articleContentElem = document.getElementById("articleContent");
-  if (articleContentElem) {
-    while (articleContentElem.firstChild) {
-      articleContentElem.removeChild(articleContentElem.firstChild);
+function showLoading() {
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  if (loadingIndicator) {
+    loadingIndicator.style.display = "flex";
+    loadingIndicator.style.pointerEvents = "none";
+    const innerDiv = loadingIndicator.querySelector("div") as HTMLElement;
+    if (innerDiv) {
+      innerDiv.style.pointerEvents = "auto";
     }
-    const articleSummary = createElement("p", "", articleData!.summary);
-    articleContentElem.appendChild(articleSummary);
   }
-  updateBookmarkButton();
 }
 
-function toggleBookmark() {
-  activeArticle!.isBookmarked = !activeArticle!.isBookmarked;
-  updateBookmarkButton();
-  showToast(activeArticle!.isBookmarked ? "Article bookmarked" : "Bookmark removed");
-  if (activeArticle.isBookmarked) {
-    activeArticle.bookmarkedAt = new Date().toISOString();
-  } else {
+function hideLoading() {
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  if (loadingIndicator) loadingIndicator.style.display = "none";
+}
+
+async function loadArticle() {
+  const articleId = getArticleIdFromUrl();
+  if (!articleId) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  try {
+    showLoading();
+    
+    activeArticle = await ApiClient.getArticle(articleId);
+    
+    if (activeArticle.isUnread) {
+      activeArticle.isUnread = false;
+      await ApiClient.setArticleReadStatus(articleId, true);
+    }
+    
+    document.title = `${activeArticle.title} - Aggre-Gator RSS`;
+    const articleTitle = document.getElementById("articleTitle");
+    if (articleTitle) articleTitle.textContent = activeArticle.title || '';
+
+    if (activeArticle.feedId) {
+      const feed = await ApiClient.getFeedInfo(activeArticle.feedId);
+      const sourceTitle = document.getElementById("sourceTitle");
+      const sourceFavicon = document.getElementById("sourceFavicon") as HTMLImageElement;
+
+      if (sourceTitle) sourceTitle.textContent = feed.title;
+      if (sourceFavicon) {
+        const domain = new URL(feed.link).hostname;
+        sourceFavicon.src = `https://www.google.com/s2/favicons?domain=${domain}`;
+      }
+    }
+
+    const articleDate = document.getElementById("articleDate");
+    if (articleDate && activeArticle.pubDate) {
+      articleDate.textContent = new Date(activeArticle.pubDate).toLocaleDateString();
+    }
+
+    const articleContentElem = document.getElementById("articleContent");
+    if (articleContentElem) {
+      while (articleContentElem.firstChild) {
+        articleContentElem.removeChild(articleContentElem.firstChild);
+      }
+      
+      if (activeArticle.content) {
+        const contentDiv = createElement("div", "prose prose-sm max-w-none");
+        contentDiv.innerHTML = activeArticle.content;
+        articleContentElem.appendChild(contentDiv);
+      } else if (activeArticle.description) {
+        const summary = createElement("p", "", activeArticle.description || "");
+        articleContentElem.appendChild(summary);
+      }
+    }
+
+    updateBookmarkButton();
+
+  } catch (error) {
+    console.error("Failed to load article:", error);
+    showToast("Failed to load article");
+  } finally {
+    hideLoading();
+  }
+}
+
+async function toggleBookmark() {
+  if (!activeArticle) return;
+
+  try {
+    const newState = !activeArticle.isBookmarked;
+    activeArticle.isBookmarked = newState;
+    if (newState) {
+      activeArticle.bookmarkedAt = new Date().toISOString();
+    } else {
+      activeArticle.bookmarkedAt = undefined;
+    }
+    
+    updateBookmarkButton();
+    showToast(newState ? "Article bookmarked" : "Bookmark removed");
+
+    await ApiClient.setArticleBookmark(activeArticle.id, newState);
+  } catch (error) {
+    activeArticle.isBookmarked = !activeArticle.isBookmarked;
     activeArticle.bookmarkedAt = undefined;
+    updateBookmarkButton();
+    console.error("Failed to update bookmark:", error);
+    showToast("Failed to update bookmark");
   }
 }
 
@@ -60,7 +119,7 @@ function updateBookmarkButton() {
   if (btn) {
     const icon = btn.querySelector("i");
     if (icon) {
-      icon.className = activeArticle!.isBookmarked ? "ri-bookmark-fill" : "ri-bookmark-line";
+      icon.className = activeArticle?.isBookmarked ? "ri-bookmark-fill" : "ri-bookmark-line";
     }
   }
 }
@@ -84,22 +143,22 @@ function showToast(message: string | null) {
   }
 }
 
-document.getElementById("bookmarkBtn")!.addEventListener("click", toggleBookmark);
-document.getElementById("shareBtn")!.addEventListener("click", shareArticle);
+async function renderRelatedArticles() {
+  if (!activeArticle || !activeArticle.feedId) return;
 
-function renderRelatedArticles() {
-  const activeArticleId = getArticleIdFromUrl();
-  activeArticle = mockArticles.find((a) => a.id === activeArticleId)!;
-
-  let relatedArticles: Article[] = [];
-  if (activeArticle && activeArticle.feedId) {
-    relatedArticles = mockArticles
-      .filter((a) => a.feedId === activeArticle.feedId && a.id !== activeArticle.id)
+  try {
+    const articleIds = await ApiClient.getFeedArticles(activeArticle.feedId);
+    const relatedIds = articleIds
+      .filter(id => id !== activeArticle!.id)
       .slice(0, 2);
-  }
+    
+    if (relatedIds.length === 0) return;
 
-  const relatedArticlesList = document.getElementById("relatedArticles");
-  if (relatedArticlesList) {
+    const relatedArticles = await ApiClient.getArticlesInfo(relatedIds);
+    const relatedArticlesList = document.getElementById("relatedArticles");
+    
+    if (!relatedArticlesList) return;
+
     while (relatedArticlesList.firstChild) {
       relatedArticlesList.removeChild(relatedArticlesList.firstChild);
     }
@@ -113,23 +172,38 @@ function renderRelatedArticles() {
 
       const contentDiv = document.createElement("div");
       const titleElem = createElement("h4", "text-sm font-medium text-gray-900", article.title);
-      const dateElem = createElement("time", "text-xs text-gray-500", article.date);
+      const dateElem = createElement(
+        "time", 
+        "text-xs text-gray-500", 
+        new Date(article.pubDate || "").toLocaleDateString()
+      );
 
       contentDiv.appendChild(titleElem);
       contentDiv.appendChild(dateElem);
       articleDiv.appendChild(contentDiv);
       relatedArticlesList.appendChild(articleDiv);
     });
+  } catch (error) {
+    console.error("Failed to load related articles:", error);
   }
 }
 
-function readArticle(id: number) {
+function readArticle(id: string) {
   window.location.href = `article-detail.html?id=${id}`;
 }
 
-function initialize() {
-  loadArticle();
-  renderRelatedArticles();
+async function initialize() {
+  if (!ApiClient.isAuthenticated()) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  document.getElementById("bookmarkBtn")?.addEventListener("click", toggleBookmark);
+  document.getElementById("shareBtn")?.addEventListener("click", shareArticle);
+
+  await loadArticle();
+  await renderRelatedArticles();
 }
 
-initialize();
+document.addEventListener("DOMContentLoaded", initialize);
+

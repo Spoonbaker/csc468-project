@@ -1,13 +1,25 @@
 use std::{env, sync::Arc};
 
 use anyhow::Context;
-use axum::{routing::get, Router};
+use axum::{
+    routing::get,
+    Router,
+    http::{
+        header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
+        HeaderValue, Method,
+    },
+};
 use tokio_postgres::NoTls;
+use tower_http::cors::CorsLayer;
 
 mod debug;
+mod auth;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Load environment variables
+    dotenv::dotenv().ok();
+
     // Use localhost in dev. The container defaults this to `db`
     let host = env::var("DB_HOST").unwrap_or_else(|_| "localhost".to_string());
 
@@ -35,12 +47,44 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    let api_routes = Router::new()
+    // Initialize OAuth client
+    let oauth_client = auth::init_oauth_client()?;
+
+    // Wrap the client in an Arc first
+    let client = Arc::new(client);
+
+    // Create shared state
+    let state = auth::AuthState {
+        oauth_client,
+        db_client: client.clone(),
+    };
+
+    // Configure CORS
+    let cors = CorsLayer::new()
+        .allow_origin("http://localhost:8081".parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE])
+        .allow_credentials(true);
+
+    // Create two separate routers with different state types
+    let auth_routes = Router::new()
+        .route("/auth/google", get(auth::google_auth_handler))
+        .route("/auth/google/callback", get(auth::google_auth_callback))
+        .with_state(state);
+
+    let debug_routes = Router::new()
         .route("/debug", get(debug::debug_handler))
-        .with_state(Arc::new(client));
+        .with_state(client);
 
-    let app = Router::new().nest("/api", api_routes);
+    // Merge the routers
+    let api_routes = auth_routes.merge(debug_routes);
 
+    println!("Setting up routes under /api/v0");
+    let app = Router::new()
+        .nest("/api/v0", api_routes)
+        .layer(cors);
+
+    println!("Starting server on port {}", listen_port);
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", listen_port))
         .await
         .context("While binding to the port/address")?;

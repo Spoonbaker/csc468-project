@@ -1,141 +1,127 @@
-import { Article } from "./models/article.ts";
-import { createElement } from "./utils/dom-utils.ts";
-import { mockArticles } from "./data/mock-data.ts";
-import { mockFeeds } from "./data/mock-data.ts";
+import { ApiClient, Article, ApiError } from './utils/api.ts';
+import { createElement } from './utils/dom-utils.ts';
 
-let hardcodedUnreadArticles = [
-  { id: 1, title: "Breakthrough in AI Medical Diagnostics", date: "2025-02-26" },
-  { id: 2, title: "The Future of Sustainable Urban Planning", date: "2025-02-25" },
-  { id: 3, title: "Quantum Computing: The Next Generation", date: "2025-02-24" },
-  { id: 4, title: "Deep Sea Discoveries: New Species Found", date: "2025-02-23" },
-  { id: 5, title: "Space Tourism: The Private Space Age", date: "2025-02-22" },
-  { id: 6, title: "Blockchain Revolution in Supply Chain", date: "2025-02-21" },
-];
 let currentUnreadPage = 1;
-// const unreadItemsPerPage = 5;
-let currentFeedId: number | null = null;
-function updateNotificationBadge() {
-  const unreadCount = mockArticles.filter((article) => article.isUnread).length;
-  const notif = document.querySelector(".notification-badge") as HTMLElement;
-  notif.textContent = unreadCount.toString();
+let currentFeedId: string | null = null;
+let currentDeleteId: string | null = null;
+let currentPage = 1;
+const itemsPerPage = 6;
+const unreadItemsPerPage = 5;
+
+async function updateNotificationBadge() {
+    const feedIds = await ApiClient.getUserFeeds();
+    const feeds = await ApiClient.getFeedsInfo(feedIds);
+    const totalUnread = feeds.reduce((sum, feed) => sum + (feed.unreadCount || 0), 0);
+    const notif = document.querySelector(".notification-badge") as HTMLElement;
+    notif.textContent = totalUnread.toString();
 }
 
-function renderUnreadList() {
-  const unreadList = document.getElementById("unreadList");
-  if (!unreadList) return;
+async function renderUnreadList() {
+    const unreadArticles = await ApiClient.getUnreadArticles();
+    const unreadList = document.getElementById("unreadList");
+    if (!unreadList) return;
 
-  while (unreadList.firstChild) {
-    unreadList.removeChild(unreadList.firstChild);
-  }
+    while (unreadList.firstChild) {
+      unreadList.removeChild(unreadList.firstChild);
+    }
 
-  const hardcodedArticles = hardcodedUnreadArticles;
+    if (unreadArticles.length === 0) {
+      const emptyState = createElement("div", "text-center p-4 text-gray-500", 
+        "No unread articles");
+      unreadList.appendChild(emptyState);
+      
+      updateUnreadCount(0);
+      return;
+    }
 
-  const containerHeight = unreadList.clientHeight || 360;
-  const estimatedItemHeight = 90;
-  const itemsPerPage = Math.max(1, Math.floor(containerHeight / estimatedItemHeight));
+    const totalUnreadPages = Math.ceil(unreadArticles.length / unreadItemsPerPage);
+    const startIndex = (currentUnreadPage - 1) * unreadItemsPerPage;
+    const endIndex = startIndex + unreadItemsPerPage;
+    const currentPageArticles = unreadArticles.slice(startIndex, endIndex);
+    
+    currentPageArticles.forEach((article) => {
+      const container = createElement(
+        "div",
+        "flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer",
+      );
+      container.onclick = () => readArticle(article.id);
 
-  const totalUnreadPages = Math.ceil(hardcodedArticles.length / itemsPerPage);
-  const startIndex = (currentUnreadPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentPageArticles = hardcodedArticles.slice(startIndex, endIndex);
+      const circle = createElement("div", "w-2 h-2 mt-2 rounded-full bg-primary");
 
-  currentPageArticles.forEach((article) => {
-    const container = createElement(
-      "div",
-      "flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer",
-    );
-    container.onclick = () => {
-      // Remove from unread list
-      hardcodedUnreadArticles = hardcodedUnreadArticles.filter((a) => a.id !== article.id);
+      const textContainer = createElement("div", "");
 
-      // Update unread UI
-      renderUnreadList();
+      const title = createElement("h4", "text-sm font-medium text-gray-900", 
+        article.title || "Untitled Article");
 
-      // Navigate to article detail
-      window.location.href = `article-detail.html?id=${article.id}`;
-    };
+      const date = createElement("time", "text-xs text-gray-500", 
+        new Date(article.pubDate || "").toLocaleDateString());
 
-    const circle = document.createElement("div");
-    circle.className = "w-2 h-2 mt-2 rounded-full bg-primary";
+      textContainer.appendChild(title);
+      textContainer.appendChild(date);
+      container.appendChild(circle);
+      container.appendChild(textContainer);
 
-    const textContainer = document.createElement("div");
+      unreadList.appendChild(container);
+    });
 
-    const title = document.createElement("h4");
-    title.className = "text-sm font-medium text-gray-900";
-    title.textContent = article.title;
+    updateUnreadCount(unreadArticles.length);
 
-    const date = document.createElement("time");
-    date.className = "text-xs text-gray-500";
-    date.textContent = article.date;
+    updateUnreadPagination(totalUnreadPages);
+}
 
-    textContainer.appendChild(title);
-    textContainer.appendChild(date);
-    container.appendChild(circle);
-    container.appendChild(textContainer);
+function updateUnreadCount(count: number) {
+  const notif = document.getElementById("notificationCount");
+  if (notif) notif.textContent = count.toString();
+  
+  const badgeNotif = document.querySelector(".notification-badge");
+  if (badgeNotif) badgeNotif.textContent = count.toString();
+}
 
-    unreadList.appendChild(container);
-  });
-
-  const notif = document.getElementById("notificationCount") as HTMLElement;
-  if (notif) notif.textContent = hardcodedArticles.length.toString();
-
+function updateUnreadPagination(totalPages: number) {
   const prevBtn = document.getElementById("unreadPrevBtn") as HTMLButtonElement;
   const nextBtn = document.getElementById("unreadNextBtn") as HTMLButtonElement;
   const pageInfo = document.getElementById("unreadPageInfo") as HTMLElement;
 
   if (prevBtn) prevBtn.disabled = currentUnreadPage === 1;
-  if (nextBtn) nextBtn.disabled = currentUnreadPage === totalUnreadPages;
-  if (pageInfo) pageInfo.textContent = `${currentUnreadPage}/${totalUnreadPages}`;
+  if (nextBtn) nextBtn.disabled = currentUnreadPage === totalPages;
+  if (pageInfo) pageInfo.textContent = `${currentUnreadPage}/${totalPages}`;
 }
 
-// function prevUnreadPage() {
-//   if (currentUnreadPage > 1) {
-//     currentUnreadPage--;
-//     renderUnreadList();
-//   }
-// }
-
-// function nextUnreadPage() {
-//   const unreadArticles = mockArticles.filter((article) => article.isUnread);
-//   const totalUnreadPages = Math.ceil(unreadArticles.length / unreadItemsPerPage);
-//   if (currentUnreadPage < totalUnreadPages) {
-//     currentUnreadPage++;
-//     renderUnreadList();
-//   }
-// }
-
-function readArticle(id: number) {
-  const article = mockArticles.find((article) => article.id === id);
-  if (article && article.isUnread) {
-    article.isUnread = false;
-    updateNotificationBadge();
+function prevUnreadPage() {
+  if (currentUnreadPage > 1) {
+    currentUnreadPage--;
     renderUnreadList();
+  }
+}
+
+function nextUnreadPage() {
+  currentUnreadPage++;
+  renderUnreadList();
+}
+
+async function readArticle(id: string) {
+    await ApiClient.setArticleReadStatus(id, true);
+    
+    renderUnreadList();
+    updateNotificationBadge();
+    
     const searchInput = document.getElementById("searchInput") as HTMLInputElement;
-    if (searchInput.value.trim()) {
+    if (searchInput?.value.trim()) {
       handleSearch(searchInput.value.toLowerCase());
     } else {
       loadAndDisplayArticles();
     }
-  }
-  window.location.href = `article-detail.html?id=${id}`;
+    window.location.href = `article-detail.html?id=${id}`;
 }
 
-let currentDeleteId: number | null = null;
-let currentPage = 1;
-const itemsPerPage = 6;
-
-function updatePaginationButtons(totalPagesForCurrentFilter?: number) {
+function updatePaginationButtons(totalPages: number) {
   const prevButton = document.getElementById("prevPage") as HTMLButtonElement;
   const nextButton = document.getElementById("nextPage") as HTMLButtonElement;
   const pageInfo = document.getElementById("pageInfo") as HTMLElement;
 
-  // Use provided total pages or calculate from all articles
-  const effectiveTotalPages =
-    totalPagesForCurrentFilter || Math.ceil(mockArticles.length / itemsPerPage);
-
   prevButton.disabled = currentPage === 1;
-  nextButton.disabled = currentPage === effectiveTotalPages;
-  pageInfo.textContent = `Page ${currentPage} of ${effectiveTotalPages}`;
+  nextButton.disabled = currentPage === totalPages;
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
 function prevPage() {
@@ -148,17 +134,20 @@ function prevPage() {
 }
 
 function nextPage() {
-  if (currentPage < Math.ceil(mockArticles.length / itemsPerPage)) {
-    currentPage++;
-    loadAndDisplayArticles();
-    const articleList = document.getElementById("articleList") as HTMLElement;
-    setupArticleEvents(articleList);
-  }
+  currentPage++;
+  loadAndDisplayArticles();
+  const articleList = document.getElementById("articleList") as HTMLElement;
+  setupArticleEvents(articleList);
 }
 
 function showLoading() {
   const loadingIndicator = document.getElementById("loadingIndicator") as HTMLElement;
   loadingIndicator.style.display = "flex";
+  loadingIndicator.style.pointerEvents = "none";
+  const innerDiv = loadingIndicator.querySelector("div") as HTMLElement;
+  if (innerDiv) {
+    innerDiv.style.pointerEvents = "auto";
+  }
 }
 
 function hideLoading() {
@@ -179,30 +168,21 @@ function debounce<Args extends unknown[]>(
   };
 }
 
-// Search handler function
-const handleSearch = debounce((searchTerm: string) => {
+const handleSearch = debounce(async (searchTerm: string) => {
   if (!searchTerm.trim()) {
     loadAndDisplayArticles();
     return;
   }
-
-  // If feed selected, filter only that feed
-  let articlesToSearch = mockArticles;
-  if (currentFeedId !== null) {
-    articlesToSearch = mockArticles.filter((article) => article.feedId === currentFeedId);
-  }
-
-  const filteredArticles = articlesToSearch.filter(
-    (article) =>
-      article.title.toLowerCase().includes(searchTerm) ||
-      article.summary.toLowerCase().includes(searchTerm),
-  );
-
-  const articleList = document.getElementById("articleList") as HTMLElement;
-  renderArticles(filteredArticles, articleList);
+    const articleIds = await ApiClient.searchArticles(searchTerm, currentFeedId);
+    const articles = await ApiClient.getArticlesInfo(articleIds);
+    
+    const articleList = document.getElementById("articleList");
+    if (articleList) {
+      renderArticles(articles, articleList);
+      setupArticleEvents(articleList);
+    }
 }, 300);
 
-// Search input listener
 const searchInput = document.getElementById("searchInput") as HTMLInputElement;
 searchInput.addEventListener("input", (e: Event) => {
   const target = e.target as HTMLInputElement;
@@ -222,17 +202,15 @@ function createArticleCard(article: Article): HTMLElement {
     "div",
     `article-card bg-white rounded-lg shadow-sm overflow-hidden ${article.isUnread ? "ring-1 ring-primary/10" : ""}`,
   );
-  card.dataset.articleId = article.id.toString(); // Fixed typo from articleID to articleId
+  card.dataset.articleId = article.id.toString();
 
-  // Main container
   const content = createElement("div", "p-6");
 
-  // Header container
   const header = createElement("div", "flex justify-between items-start mb-4");
   const title = createElement(
     "h2",
     `text-lg ${article.isUnread ? "font-bold" : "font-medium"} text-gray-900`,
-    article.title,
+    article.title || "Untitled Article",
   );
   const deleteBtn = createElement(
     "button",
@@ -244,14 +222,11 @@ function createArticleCard(article: Article): HTMLElement {
   header.appendChild(title);
   header.appendChild(deleteBtn);
 
-  // Summary
-  const summary = createElement("p", "text-gray-600 mb-4 text-sm", article.summary);
+  const summary = createElement("p", "text-gray-600 mb-4 text-sm", article.description || "");
 
-  // Stats
   const stats = createElement("div", "flex items-center justify-between");
   const btnContainer = createElement("div", "flex items-center gap-3");
 
-  // Bookmark button
   const bookmarkBtn = createElement(
     "button",
     "bookmark-btn w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary",
@@ -259,7 +234,6 @@ function createArticleCard(article: Article): HTMLElement {
   const bookmarkIcon = createElement("i", `ri-bookmark-${article.isBookmarked ? "fill" : "line"}`);
   bookmarkBtn.appendChild(bookmarkIcon);
 
-  // Share button
   const shareBtn = createElement(
     "button",
     "share-btn w-8 h-8 flex items-center justify-center text-gray-400 hover:text-primary",
@@ -270,13 +244,11 @@ function createArticleCard(article: Article): HTMLElement {
   btnContainer.appendChild(bookmarkBtn);
   btnContainer.appendChild(shareBtn);
 
-  // Date
-  const date = createElement("time", "text-sm text-gray-500", article.date);
+  const date = createElement("time", "text-sm text-gray-500", article.pubDate ? new Date(article.pubDate).toLocaleDateString() : "");
 
   stats.appendChild(btnContainer);
   stats.appendChild(date);
 
-  // Read more
   const footer = createElement("div", "px-6 py-4 bg-gray-50 border-t");
   const readMoreBtn = createElement(
     "button",
@@ -285,7 +257,6 @@ function createArticleCard(article: Article): HTMLElement {
   );
   footer.appendChild(readMoreBtn);
 
-  // Assembly
   content.appendChild(header);
   content.appendChild(summary);
   content.appendChild(stats);
@@ -295,14 +266,10 @@ function createArticleCard(article: Article): HTMLElement {
   return card;
 }
 
-// Article list render function
 async function renderArticles(articles: Article[], container: HTMLElement) {
   showLoading();
 
   try {
-    // Simulate loading delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
@@ -319,15 +286,15 @@ async function renderArticles(articles: Article[], container: HTMLElement) {
     }
 
     const fragment = document.createDocumentFragment();
-
-    // Create article cards and add to fragment
-    articles.forEach((article) => {
-      const articleCard = createArticleCard(article);
-      fragment.appendChild(articleCard);
+    const grid = createElement("div", "grid gap-6");
+    
+    articles.forEach(article => {
+      const card = createArticleCard(article);
+      grid.appendChild(card);
     });
-
+    
+    fragment.appendChild(grid);
     container.appendChild(fragment);
-
     setupArticleEvents(container);
   } catch (error) {
     console.error("Render articles failed:", error);
@@ -353,7 +320,8 @@ function setupArticleEvents(container: HTMLElement) {
 
     if (!articleCard) return;
 
-    const articleId = Number(articleCard.dataset.articleId);
+    const articleId = articleCard.dataset.articleId;
+    if (!articleId) return;
 
     if (target.closest(".delete-btn")) {
       e.stopPropagation();
@@ -374,218 +342,177 @@ function setupArticleEvents(container: HTMLElement) {
   });
 }
 
-function loadAndDisplayArticles() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const feedIdParam = urlParams.get("feedId");
+async function loadAndDisplayArticles() {
+  const articleList = document.getElementById("articleList");
+  if (!articleList) return;
 
-  if (feedIdParam) {
-    currentFeedId = parseInt(feedIdParam, 10);
-  }
-
-  let articlesToShow = mockArticles;
-  if (currentFeedId !== null) {
-    const feedsButton = document.getElementById("feedsButton")!;
-    feedsButton.className =
-      "flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-white hover:bg-secondary";
-    const homeButton = document.getElementById("homeButton")!;
-    homeButton.className =
-      "flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100";
-    articlesToShow = mockArticles.filter((article) => article.feedId === currentFeedId);
-
-    const currentFeed = mockFeeds?.find((feed) => feed.id === currentFeedId);
-    if (currentFeed) {
-      document.title = `${currentFeed.name} - Aggre-Gator RSS`;
-
-      const feedIndicator = document.getElementById("currentFeedIndicator");
-      if (feedIndicator) {
-        feedIndicator.textContent = `Viewing: ${currentFeed.name}`;
-        feedIndicator.style.display = "block";
+  showLoading();
+  
+  try {
+    if (!ApiClient.isAuthenticated()) {
+      while (articleList.firstChild) {
+        articleList.removeChild(articleList.firstChild);
       }
+      
+      const emptyMessage = createElement("div", "col-span-full text-center py-8");
+      const icon = createElement("i", "ri-login-box-line text-4xl text-gray-400 mb-2");
+      const text = createElement("p", "text-gray-500", "Please log in to view articles");
+      
+      emptyMessage.appendChild(icon);
+      emptyMessage.appendChild(text);
+      articleList.appendChild(emptyMessage);
+      
+      updatePaginationButtons(1);
+      hideLoading();
+      return;
     }
-  } else {
-    document.title = "Aggre-Gator RSS";
-
-    const feedIndicator = document.getElementById("currentFeedIndicator");
-    if (feedIndicator) {
-      feedIndicator.style.display = "none";
+    
+    let articleIds: string[] = [];
+    if (currentFeedId) {
+      articleIds = await ApiClient.getFeedArticles(currentFeedId);
+      updateFeedIndicator(currentFeedId);
+    } else {
+      const feedIds = await ApiClient.getUserFeeds();
+      for (const feedId of feedIds) {
+        const feedArticles = await ApiClient.getFeedArticles(feedId);
+        articleIds = articleIds.concat(feedArticles);
+      }
+      hideFeedIndicator();
     }
+
+    if (articleIds.length === 0) {
+      while (articleList.firstChild) {
+        articleList.removeChild(articleList.firstChild);
+      }
+      
+      const emptyMessage = createElement("div", "col-span-full text-center py-8");
+      const icon = createElement("i", "ri-search-line text-4xl text-gray-400 mb-2");
+      const text = createElement("p", "text-gray-500", "No articles found");
+      
+      emptyMessage.appendChild(icon);
+      emptyMessage.appendChild(text);
+      articleList.appendChild(emptyMessage);
+      
+      updatePaginationButtons(1);
+      hideLoading();
+      return;
+    }
+
+    articleIds.sort((a, b) => b.localeCompare(a));
+
+    const totalPages = Math.ceil(articleIds.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentPageIds = articleIds.slice(startIndex, endIndex);
+    
+    const articles = await ApiClient.getArticlesInfo(currentPageIds);
+    await renderArticles(articles, articleList);
+    updatePaginationButtons(totalPages);
+  } catch (error) {
+    console.error("Failed to load articles:", error);
+    
+    while (articleList.firstChild) {
+      articleList.removeChild(articleList.firstChild);
+    }
+    
+    const errorMessage = createElement("div", "col-span-full text-center py-8");
+    const icon = createElement("i", "ri-error-warning-line text-4xl text-red-400 mb-2");
+    const text = createElement("p", "text-red-500", "Failed to load articles. Please try again later.");
+    
+    errorMessage.appendChild(icon);
+    errorMessage.appendChild(text);
+    articleList.appendChild(errorMessage);
+    
+    updatePaginationButtons(1);
+    showToast("Failed to load articles. Please try again.");
+  } finally {
+    hideLoading();
   }
-
-  const totalPagesForCurrentFilter = Math.ceil(articlesToShow.length / itemsPerPage);
-  if (currentPage > totalPagesForCurrentFilter) {
-    currentPage = 1;
-  }
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedArticles = articlesToShow.slice(startIndex, endIndex);
-
-  const articleList = document.getElementById("articleList") as HTMLElement;
-  renderArticles(paginatedArticles, articleList);
-
-  updatePaginationButtons(totalPagesForCurrentFilter);
 }
 
-const deleteModal = document.getElementById("deleteModal") as HTMLElement;
-function showDeleteModal(id: number | null) {
+function showDeleteModal(id: string | null) {
   currentDeleteId = id;
-  deleteModal.style.display = "flex";
+  const deleteModal = document.getElementById("deleteModal");
+  if (deleteModal) {
+    deleteModal.classList.remove('modal-hidden');
+    deleteModal.classList.add('modal-visible');
+  }
 }
+
 function closeDeleteModal() {
-  deleteModal.style.display = "none";
+  const deleteModal = document.getElementById("deleteModal");
+  if (deleteModal) {
+    deleteModal.classList.remove('modal-visible');
+    deleteModal.classList.add('modal-hidden');
+  }
   currentDeleteId = null;
 }
-// function showLoginModal() {
-//   document.getElementById("loginModal")?.classList.add("show");
-// }
 
-// function closeLoginModal() {
-//   document.getElementById("loginModal")?.classList.remove("show");
-// }
-
-document.addEventListener("DOMContentLoaded", () => {
-  // Read feedId from URL (used for filtering the main article list)
-  const urlParams = new URLSearchParams(window.location.search);
-  const feedIdParam = urlParams.get("feedId");
-  if (feedIdParam) {
-    currentFeedId = parseInt(feedIdParam, 10);
-  }
-
-  // Login modal setup
-  const loginButton = document.getElementById("loginButton") as HTMLButtonElement;
-  const loginModal = document.getElementById("loginModal") as HTMLElement;
-  const closeButton = document.getElementById("closeLogin") as HTMLButtonElement;
-
-  if (!loginButton || !loginModal || !closeButton) {
-    console.error("❌ Login modal elements not found!");
+async function confirmDelete() {
+  if (!currentDeleteId) {
+    closeDeleteModal();
     return;
   }
 
-  function showLoginModal() {
-    console.log("✅ Showing login modal");
-    loginModal.classList.remove("hidden");
-    loginModal.style.display = "flex";
+  showLoading();
+  try {
+    await ApiClient.deleteArticle(currentDeleteId);
+    showToast("Article deleted");
+    loadAndDisplayArticles();
+  } catch (error) {
+    console.error("Delete failed:", error);
+    showToast("Failed to delete article");
+  } finally {
+    hideLoading();
   }
+}
 
-  function closeLoginModal() {
-    console.log("✅ Closing login modal");
-    loginModal.classList.add("hidden");
-    loginModal.style.display = "none";
-  }
-
-  loginButton.addEventListener("click", showLoginModal);
-  closeButton.addEventListener("click", closeLoginModal);
-
-  // Delete modal button events
-  document.getElementById("cancelDelete")?.addEventListener("click", closeDeleteModal);
-  document.getElementById("closeDelete")?.addEventListener("click", closeDeleteModal);
-  document.getElementById("confirmDelete")?.addEventListener("click", confirmDelete);
-
-  // Pagination for main article section
-  document.getElementById("prevPage")?.addEventListener("click", prevPage);
-  document.getElementById("nextPage")?.addEventListener("click", nextPage);
-
-  // Pagination for unread articles (right panel)
-  document.getElementById("unreadPrevBtn")?.addEventListener("click", () => {
-    if (currentUnreadPage > 1) {
-      currentUnreadPage--;
-      renderUnreadList();
-    }
-  });
-
-  document.getElementById("unreadNextBtn")?.addEventListener("click", () => {
-    const unreadList = document.getElementById("unreadList");
-    const containerHeight = unreadList?.clientHeight || 360;
-    const estimatedItemHeight = 90;
-    const itemsPerPage = Math.max(1, Math.floor(containerHeight / estimatedItemHeight));
-    const maxPage = Math.ceil(6 / itemsPerPage); // 6 hardcoded articles for now
-
-    if (currentUnreadPage < maxPage) {
-      currentUnreadPage++;
-      renderUnreadList();
-    }
-  });
-
-  if (!document.getElementById("currentFeedIndicator")) {
-    const mainContent = document.querySelector("main");
-    if (mainContent) {
-      const feedIndicator = createElement(
-        "div",
-        "bg-primary/10 text-primary px-4 py-2 rounded-lg mb-4 hidden",
-      );
-      feedIndicator.id = "currentFeedIndicator";
-
-      if (mainContent.firstChild) {
-        mainContent.insertBefore(feedIndicator, mainContent.firstChild);
-      } else {
-        mainContent.appendChild(feedIndicator);
+async function toggleBookmark(id: string) {
+  try {
+    const articles = document.querySelectorAll(`.article-card[data-article-id="${id}"]`);
+    const article = await ApiClient.getArticle(id);
+    
+    const newState = !article.isBookmarked;
+    
+    articles.forEach(articleElem => {
+      const btn = articleElem.querySelector(".bookmark-btn");
+      if (btn) {
+        const icon = btn.querySelector("i");
+        if (icon) {
+          btn.classList.add("scale-110", "transition-transform", "duration-200");
+          setTimeout(() => {
+            btn.classList.remove("scale-110");
+          }, 200);
+          
+          icon.className = `ri-bookmark-${newState ? "fill" : "line"}`;
+        }
       }
-    }
-  }
-
-  // Initial render of unread articles
-  renderUnreadList();
-
-  // Re-render unread list on window resize
-  window.addEventListener("resize", renderUnreadList);
-
-  // Initial article load
-  loadAndDisplayArticles();
-});
-
-function confirmDelete() {
-  if (currentDeleteId !== null) {
-    const index = mockArticles.findIndex((article) => article.id === currentDeleteId);
-    if (index !== -1) {
-      mockArticles.splice(index, 1);
-      loadAndDisplayArticles();
-    }
-  }
-  closeDeleteModal();
-}
-
-function toggleBookmark(id: number) {
-  console.log("🔖 Bookmark toggled for article:", id);
-
-  const article = mockArticles.find((article) => article.id === id);
-  if (article) {
-    article.isBookmarked = !article.isBookmarked;
-
-    const articleCard = document.querySelector(`[data-article-id="${id}"]`);
-    const btn = articleCard?.querySelector(".bookmark-btn") as HTMLButtonElement;
-
-    if (btn) {
-      btn.classList.add("scale-110", "transition-transform", "duration-200");
-      setTimeout(() => {
-        btn.classList.remove("scale-110");
-      }, 200);
-
-      const icon = btn.querySelector("i");
-      if (icon) {
-        icon.className = `ri-bookmark-${article.isBookmarked ? "fill" : "line"}`;
-      }
-    }
-
-    showToast(article.isBookmarked ? "🔖 Saved to Bookmarks!" : "🗑️ Removed from Bookmarks");
+    });
+    
+    showToast(newState ? "🔖 Saved to Bookmarks!" : "Removed from Bookmarks");
+    
+    await ApiClient.setArticleBookmark(id, newState);
+  } catch (error) {
+    console.error("Failed to toggle bookmark:", error);
+    showToast("Failed to update bookmark");
   }
 }
 
-function shareArticle(id: number) {
-  const article = mockArticles.find((article) => article.id === id);
-  if (article) {
-    const shareUrl = `${window.location.origin}/article/${article.id}`;
-    navigator.clipboard
-      .writeText(shareUrl)
-      .then(() => {
-        showToast("Link copied!");
-      })
-      .catch(() => {
-        showToast("Failed to copy link");
-      });
-  }
+function shareArticle(id: string) {
+  const shareUrl = `${window.location.origin}/article-detail.html?id=${id}`;
+  navigator.clipboard
+    .writeText(shareUrl)
+    .then(() => {
+      showToast("Link copied!");
+    })
+    .catch(() => {
+      showToast("Failed to copy link");
+    });
 }
-function showToast(message: string | null) {
-  // Create toast element if it doesn't exist
+
+function showToast(message: string) {
   let toast = document.getElementById("toast");
   if (!toast) {
     toast = document.createElement("div");
@@ -595,20 +522,143 @@ function showToast(message: string | null) {
     document.body.appendChild(toast);
   }
 
-  // Show toast with message
   toast.textContent = message;
   toast.classList.remove("translate-y-full");
 
-  // Hide toast after 2 seconds
   setTimeout(() => {
     toast.classList.add("translate-y-full");
   }, 2000);
 }
 
-window.addEventListener("resize", () => {
-  renderUnreadList();
-});
+function updateFeedIndicator(feedId: string) {
+  ApiClient.getFeedInfo(feedId).then(feed => {
+    document.title = `${feed.title} - Aggre-Gator RSS`;
+    const indicator = document.getElementById("currentFeedIndicator");
+    if (indicator) {
+      indicator.textContent = `Viewing: ${feed.title}`;
+      indicator.style.display = "block";
+    }
+  });
+}
 
-// Initial load has been moved to DOMContentLoaded event
-// This prevents issues with elements not being in the DOM yet
-updateNotificationBadge();
+function hideFeedIndicator() {
+  document.title = "Aggre-Gator RSS";
+  const indicator = document.getElementById("currentFeedIndicator");
+  if (indicator) {
+    indicator.style.display = "none";
+  }
+}
+
+async function initializeAuth() {
+  if (!ApiClient.isAuthenticated()) {
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+      loginModal.classList.remove('modal-hidden');
+      loginModal.classList.add('modal-visible');
+    }
+    return;
+  }
+  
+  try {
+    await Promise.all([
+      updateNotificationBadge(),
+      loadAndDisplayArticles(),
+      renderUnreadList()
+    ]);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      const loginModal = document.getElementById('loginModal');
+      if (loginModal) {
+        loginModal.classList.remove('modal-hidden');
+        loginModal.classList.add('modal-visible');
+      }
+    }
+  }
+}
+
+// Initialize the app
+document.addEventListener('DOMContentLoaded', async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+  
+  // Check for auth callback
+  if (hashParams.get('auth-callback') !== null) {
+    const token = urlParams.get('token');
+    const expiresIn = urlParams.get('expires_in');
+    if (token && expiresIn) {
+      ApiClient.setToken(token, parseInt(expiresIn));
+      window.history.replaceState({}, document.title, window.location.pathname);      await initializeAuth();
+      return;
+    }
+  }
+  
+  const code = urlParams.get('code');
+  if (code) {
+    showLoading();
+    try {
+      await ApiClient.handleOAuthCallback(code);
+      return;
+    } catch (error) {
+      console.error('OAuth callback failed:', error);
+      showToast('Authentication failed. Please try again.');
+      hideLoading();
+    }
+  }
+  
+  const loginButton = document.getElementById('loginButton');
+  if (loginButton) {
+    loginButton.addEventListener('click', () => {
+      const loginModal = document.getElementById('loginModal');
+      if (loginModal) {
+        loginModal.classList.remove('modal-hidden');
+        loginModal.classList.add('modal-visible');
+      }
+    });
+  }
+
+  const googleLoginBtn = document.getElementById('googleLoginBtn');
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', () => {
+      window.location.href = '/api/v0/auth/google';
+    });
+  }
+
+  const closeLoginBtn = document.getElementById('closeLogin');
+  if (closeLoginBtn) {
+    closeLoginBtn.addEventListener('click', () => {
+      const loginModal = document.getElementById('loginModal');
+      if (loginModal) {
+        loginModal.classList.remove('modal-visible');
+        loginModal.classList.add('modal-hidden');
+      }
+    });
+  }
+
+  const prevPageBtn = document.getElementById('prevPage');
+  if (prevPageBtn) {
+    prevPageBtn.addEventListener('click', prevPage);
+  }
+
+  const nextPageBtn = document.getElementById('nextPage');
+  if (nextPageBtn) {
+    nextPageBtn.addEventListener('click', nextPage);
+  }
+
+  const closeDeleteBtn = document.getElementById('closeDelete');
+  if (closeDeleteBtn) {
+    closeDeleteBtn.addEventListener('click', closeDeleteModal);
+  }
+
+  const confirmDeleteBtn = document.getElementById('confirmDelete');
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener('click', confirmDelete);
+  }
+
+  document.getElementById("unreadPrevBtn")?.addEventListener("click", prevUnreadPage);
+  document.getElementById("unreadNextBtn")?.addEventListener("click", nextUnreadPage);
+  
+  currentFeedId = urlParams.get('feedId');
+  initializeAuth();
+  
+  window.addEventListener("resize", renderUnreadList);
+});

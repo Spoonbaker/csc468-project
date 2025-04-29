@@ -37,8 +37,21 @@ export default {
     tailwindcss(),
   ],
   server: {
+    port: 8081,
     headers: {
       "Content-Security-Policy": "default-src 'self'; img-src https://*",
+    },
+    proxy: {
+      '/api/v0': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Ensure the Host header matches the target
+            proxyReq.setHeader('Host', 'localhost:3000');
+          });
+        },
+      },
     },
   },
 } satisfies UserConfig;
