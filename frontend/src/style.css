@@ -77,3 +77,35 @@ input[type="number"]::-webkit-outer-spin-button {
   padding: 1rem;
   background-color: #f9fafb;
 }
+
+/* Solve the black screen problem when waiting for loading */
+#loadingIndicator {
+  background-color: transparent !important;
+}
+
+#loginModal {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+#loginModal.show {
+  display: flex;
+}
+
+#deleteFeedModal {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+#deleteModal {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  /* Change to semi-transparent */
+}
