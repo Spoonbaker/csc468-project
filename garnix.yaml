@@ -10,4 +10,4 @@ servers:
   - configuration: deploy-host
     deployment:
       type: on-branch
-      branch: main
+      branch: deploy
