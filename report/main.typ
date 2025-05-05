@@ -14,7 +14,7 @@
 
 #set page(paper: "us-letter", margin: 1in)
 #set par(leading: 0.65em)
-#set text(font: "New Computer Modern", size: 12pt)
+#set text(size: 11pt)
 
 #set par(justify: true)
 // Not completely sure if global like this is the way to go or not
@@ -339,6 +339,26 @@ without us changing it deliberately. This pinned environment is the same between
 development, testing, and deployment. This means that in dev, we can run the
 exact checks that would run in CI with `nix flake check`, before commiting or
 pushing.
+
+= Chapter 4
+Assessing the progress our team has made in developing Aggre-Gator, we have successfully implemented most of the technical requirements planned in Chapter 2, though some components are still in development.
+
+== Frontend Development
+As outlined in Chapter 2, we built a static site with client-side interactivity using TypeScript. We've implemented all the core pages needed for an RSS reader, including:
+
+- A home page that displays articles from all subscribed feeds
+- A feed management page that allows users to add, view, and delete feeds
+- An article detail page that displays the content of a selected article
+- A bookmarks page for saved articles
+
+== Backend Development
+The backend components are still in active development. While we have designed the REST API specification for communication between the frontend and database, the actual implementation of the backend-api service is still in progress. Our API specification includes endpoints for:
+
+- Managing user feed subscriptions
+- Retrieving feed information and articles
+- Handling bookmarks and read/unread states
+
+The feed fetcher service, which will periodically update subscribed feeds, is also under development. We've completed the design phase but have yet to fully implement the service.
 
 #{
   set par(justify: false)
